@@ -2,10 +2,11 @@
 
 subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
-		     exc,mshift,coultype,ez,w1,r0,lc,rk,meshtype,bsewf,excwf0,excwff)
+		     exc,mshift,coultype,ez,w1,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff)
 
 	use omp_lib
 	use hamiltonian_input_variables
+    use bse_types
 
 	implicit none
 
@@ -91,8 +92,9 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	double precision,dimension(3) :: ediel
 	double precision :: ez,w1,lc
 	logical :: bsewf
+	logical :: berryexc
 	integer :: excwf0,excwff	
-	
+	type(bse_coeff) :: bse_coefficient !
 
 	!call input_read
 
@@ -404,14 +406,23 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 
 		end do
 
-
+!initialize bse coefficiente
+	bse_coefficient%nc = nc
+	bse_coefficient%nv = nv
+	bse_coefficient%nkpts = ngkpt
+	bse_coefficient%nT = excwff-excwf0
+	bse_coefficient%lmbd = dimbse
 	if (bsewf) then
 	
 	      	do i2=excwf0,excwff
       	
       			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
-      	
-      		end do
+				if(berryexc) then
+				    do i=1,ngkpt*nc*nv
+						bse_coefficient%A_table(i2,nocp(stt(i,4))+stt(i,3)-nv,nocp(stt(i,4))-nv+stt(i,2),stt(i,4),i) = hbse(i,i2)
+					end do
+				endif
+	  		end do
 	
 	else
 	

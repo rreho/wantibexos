@@ -95,7 +95,7 @@ program main
 	call param_out(2077,nthreads,outputfolder,calcparms,ngrid,nc,nv,edos0,edosf,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,bandscalc,doscalc,bse,bsepol,bsekpath,spec,&
-		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,excwf0,excwff,&
+		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,berryexc,excwf0,excwff,&
 		     tmcoef,ez,w,lc,r0,sysdim)
 
 	call cpu_time(t0)

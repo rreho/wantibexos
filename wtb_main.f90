@@ -8,6 +8,7 @@ INCLUDE "./subroutines/dos_subs.f90"
 INCLUDE "./subroutines/general_subs.f90"
 INCLUDE "./subroutines/mhkpack_subs.f90"
 INCLUDE "./subroutines/module_input_read.f90"
+INCLUDE "./subroutines/module_bse_types.f90"
 INCLUDE "./subroutines/optics.f90"
 INCLUDE "./subroutines/hamiltonian_tb.f90"
 INCLUDE "./subroutines/bse_subs_temp.f90"
@@ -109,7 +110,7 @@ program main
 	call param_out(2077,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,bandscalc,doscalc,bse,bsepol,bsekpath,spec,&
-		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,excwf0,excwff,&
+		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,berryexc,excwf0,excwff,&
 		     tmcoef,ez,w,lc,r0,sysdim,dtfull,cpol,cshift,dft,bset,bsetbnd,&
 		     st,phavg,temp,ta,pce,ses,ctemp,tmax,eg,egd,egs,ebgs,renorm)
 
@@ -128,7 +129,7 @@ program main
 
 	!calculo estrutura eletronica
 	if (pponly) go to 131
-
+	! this is electronic band structure only
 	if (bandscalc) then
 
 	 call bandstool(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
@@ -187,7 +188,7 @@ program main
 	
 	 call bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
-		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,excwf0,excwff)	
+		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff)	
 		     
 	 write(2077,*) "BSE exciton band structure finished"
      call flush(2077)		     

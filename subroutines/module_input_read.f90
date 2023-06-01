@@ -197,7 +197,7 @@ module input_variables
 	character(len=70) :: kpathsbse    !kpath
 	!character(len=70) :: diein    !ambiente dieletrico
 	character(len=70) :: outputfolder    !pasta saida
-	character(len=70) :: calcparms
+	character(len=70) :: calcparms       ! log output folder
 	character(len=70) :: meshtype
 	character(len=5) :: coultype
 	character(len=5) :: sysdim
@@ -213,6 +213,7 @@ module input_variables
 	logical :: berryk,berrybz
 	logical :: pponly
 	logical :: bsewf
+	logical :: berryexc
 	logical :: tmcoef
 	logical :: dtfull,cpol
 	logical :: bset,bsetbnd
@@ -315,6 +316,8 @@ subroutine input_read
 	pponly = .false.
 	
 	bsewf = .false.
+
+	berryexc = .false.
 	
 	tmcoef = .false.
 	
@@ -479,6 +482,10 @@ subroutine input_read
 	case ("BSE_WF=")
 	
 		read(b,*) bsewf					
+	
+	case ("BERRY_EXC=")
+	
+		read(b,*) berryexc					
 	
 	case ("PP_ONLY=")
 	
@@ -665,7 +672,7 @@ end subroutine input_read
 subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,bandscalc,doscalc,bse,bsepol,bsekpath,spec,&
-		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,excwf0,excwff,&
+		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,berryexc,excwf0,excwff,&
 		     tmcoef,ez,w,lc,r0,sysdim,dtfull,cpol,cshift,dft,bset,bsetbnd,&
 		     st,phavg,temp,ta,pce,ses,ctemp,tmax,eg,egd,egs,ebgs,renorm)
 
@@ -702,7 +709,7 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 	logical :: bse,bsepol,bsekpath
 	logical :: spdiel,spdielpol,sppolbz
 	logical :: spec,tmcoef
-	logical :: berryk,berrybz,pponly,bsewf
+	logical :: berryk,berrybz,pponly,bsewf,berryexc
 	logical :: dtfull,cpol	
 	logical :: bset,bsetbnd
 	logical :: pce,renorm	
@@ -742,6 +749,7 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 	write(unitout,"(A7,L1)")  "BERRY= ",berryk
 	write(unitout,"(A9,L1)")  "PP_ONLY= ",pponly
 	write(unitout,"(A8,L1)") "BSE_WF= ",bsewf	
+	write(unitout,"(A8,L1)") "BERRY_EXC= ",berryexc	
 	write(unitout,"(A8,L1)") "TMCOEF= ",tmcoef
 	write(unitout,"(A8,L1)") "DTDIAG= ",dtfull
 	write(unitout,"(A6,L1)") "CPOL= ",cpol
@@ -815,4 +823,62 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 
 end subroutine param_out
 
-
+subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
+    implicit none
+    
+    integer, parameter :: nbands ! Number of bands
+    integer, parameter :: nkpts  ! Number of k-points
+    integer, parameter :: nntot  ! Total number of non-zero elements
+    
+    double complex :: Mmn(num_bands, num_bands, num_kpts, nntot,2)
+    
+    integer :: kpt_index, nn_index, m, n
+    integer :: kpt_firstBZ, periodic_kpt
+    integer :: Gx, Gy, Gz
+	integer :: G_periodic_kpt(nntot,3)
+    real :: real_val, imag_val
+    
+    character(len = 70) :: inputfile
+    integer :: unidade, status
+    
+    ! Specify the filename of the seedname.mmn file
+    filename = inputfile
+    
+    ! Open the file for reading
+    open(newunit=unidade, file=filename, status='old', action='read', iostat=status)
+    if (status /= 0) then
+        write(*, *) "Error opening file: ", trim(filename)
+        stop
+    endif
+    
+    ! Read the comment line
+    read(iunit, *)
+    
+    ! Read the second line with num_bands, num_kpts, and nntot
+    read(iunit, *) ! Skip the second line
+    
+    ! Loop over k-points and non-zero elements
+    do kpt_index = 1, num_kpts
+        do nn_index = 1, nntot
+            ! Read the first line of each block
+			G_periodic_kpt(nn_index,:) = (/Gx,Gy,Gz/)
+	        read(iunit, *) kpt_firstBZ, periodic_kpt, Gx, Gy, Gz
+            
+            ! Loop over bands
+            do m = 1, num_bands
+                do n = 1, num_bands
+                    ! Read the real and imaginary parts
+                    read(iunit, *) real_val, imag_val
+                    
+                    ! Store the values in the arrays
+                    Mmn(m, n, kpt_index,nn_index) = real_val
+                    imag_part(m, n, kpt_index, nn_index) = imag_val
+                end do
+            end do
+        end do
+    end do
+    
+    ! Close the file
+    close(iunit)
+        
+end subroutine mmn_input_read
