@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 
 nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+wtbexec="../..//bin/wtb.x"
 
 mkdir ./out/
 
-cat tmd-kpoints-bse.dat << EOF
-6
-5
-0.0 0.0 0.0               !ponto Gamma
-0.6667  -0.3333  0.0      !ponto K
-0.6667  -0.3333  0.0      !ponto K
-0.3333   0.3333 0.0       !ponto K'
-0.3333   0.3333 0.0       !ponto K'
-0.0 0.0 0.0               !ponto Gamma
-EOF
+#cat tmd-kpoints-bse.dat << EOF
+#6
+#5
+#0.0 0.0 0.0               !ponto Gamma
+#0.6667  -0.3333  0.0      !ponto K
+#0.6667  -0.3333  0.0      !ponto K
+#0.3333   0.3333 0.0       !ponto K'
+#0.3333   0.3333 0.0       !ponto K'
+#0.0 0.0 0.0               !ponto Gamma
+#EOF
 
 cat > input_mos2_bseb.dat << EOF
 NTHREADS= $nthreads

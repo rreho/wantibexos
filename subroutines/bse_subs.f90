@@ -611,7 +611,7 @@ subroutine excwfi2(outputfolder,ngkpt,kpt,qpt,nc,nv,nocp,stt,excenergy,excnum,qp
 
 	do i=1,ngkpt*nc*nv
 		
- 	write(700+excnum*qptnum,Format) nocp(stt(i,4)),kpt,1),kpt(stt(i,4),2),kpt(stt(i,4),3),&
+	write(700+excnum*qptnum,Format) nocp(stt(i,4)),kpt(stt(i,4),1),kpt(stt(i,4),2),kpt(stt(i,4),3),&
  			   	  nocp(stt(i,4))+stt(i,3)-nv,nocp(stt(i,4))-nv+stt(i,2),real(ewf(i)),aimag(ewf(i))
  
 	end do

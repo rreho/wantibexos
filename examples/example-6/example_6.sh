@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+wtbexec="../..//bin/wtb.x"
 
 mkdir ./out/
 
@@ -24,7 +24,7 @@ SPEC= T
 DTDIAG= T
 
 BSE_WF= T
-
+BERRY_EXC= F
 EXC_WF_I= 1
 EXC_WF_F= 10
 

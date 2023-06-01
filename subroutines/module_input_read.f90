@@ -749,7 +749,7 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 	write(unitout,"(A7,L1)")  "BERRY= ",berryk
 	write(unitout,"(A9,L1)")  "PP_ONLY= ",pponly
 	write(unitout,"(A8,L1)") "BSE_WF= ",bsewf	
-	write(unitout,"(A8,L1)") "BERRY_EXC= ",berryexc	
+	write(unitout,"(A11,L1)") "BERRY_EXC= ",berryexc	
 	write(unitout,"(A8,L1)") "TMCOEF= ",tmcoef
 	write(unitout,"(A8,L1)") "DTDIAG= ",dtfull
 	write(unitout,"(A6,L1)") "CPOL= ",cpol
@@ -826,11 +826,11 @@ end subroutine param_out
 subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
     implicit none
     
-    integer, parameter :: nbands ! Number of bands
-    integer, parameter :: nkpts  ! Number of k-points
-    integer, parameter :: nntot  ! Total number of non-zero elements
+    integer :: nbands ! Number of bands
+    integer :: nkpts  ! Number of k-points
+    integer :: nntot  ! Total number of non-zero elements
     
-    double complex :: Mmn(num_bands, num_bands, num_kpts, nntot,2)
+    double complex, allocatable,dimension(:,:,:,:) :: Mmn
     
     integer :: kpt_index, nn_index, m, n
     integer :: kpt_firstBZ, periodic_kpt
@@ -838,47 +838,45 @@ subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
 	integer :: G_periodic_kpt(nntot,3)
     real :: real_val, imag_val
     
-    character(len = 70) :: inputfile
+    character(len = 70) :: inputfile ! Specify the filename of the seedname.mmn file
     integer :: unidade, status
     
-    ! Specify the filename of the seedname.mmn file
-    filename = inputfile
-    
+    allocate(Mmn(nbands,nbands,nkpts,nntot))
     ! Open the file for reading
-    open(newunit=unidade, file=filename, status='old', action='read', iostat=status)
+    open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
     if (status /= 0) then
-        write(*, *) "Error opening file: ", trim(filename)
+        write(*, *) "Error opening file: ", trim(inputfile)
         stop
     endif
     
     ! Read the comment line
-    read(iunit, *)
+    read(unidade, *)
     
     ! Read the second line with num_bands, num_kpts, and nntot
-    read(iunit, *) ! Skip the second line
+    read(unidade, *) ! Skip the second line
     
     ! Loop over k-points and non-zero elements
-    do kpt_index = 1, num_kpts
+    do kpt_index = 1, nkpts
         do nn_index = 1, nntot
             ! Read the first line of each block
 			G_periodic_kpt(nn_index,:) = (/Gx,Gy,Gz/)
-	        read(iunit, *) kpt_firstBZ, periodic_kpt, Gx, Gy, Gz
+	        read(unidade, *) kpt_firstBZ, periodic_kpt, Gx, Gy, Gz
             
             ! Loop over bands
-            do m = 1, num_bands
-                do n = 1, num_bands
+            do m = 1, nbands
+                do n = 1, nbands
                     ! Read the real and imaginary parts
-                    read(iunit, *) real_val, imag_val
+                    read(unidade, *) real_val, imag_val
                     
                     ! Store the values in the arrays
-                    Mmn(m, n, kpt_index,nn_index) = real_val
-                    imag_part(m, n, kpt_index, nn_index) = imag_val
+                    Mmn(m, n, kpt_index,nn_index) = cmplx(real_val,imag_val)
                 end do
             end do
         end do
     end do
     
     ! Close the file
-    close(iunit)
+    close(unidade)
+	deallocate(Mmn)
         
 end subroutine mmn_input_read

@@ -33,7 +33,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
 	double precision,allocatable,dimension(:,:) :: qauxv !(nqpts*npath,4) 
 
-	integer:: counter,c,v,i,j,f,l,h,erro,i2,k
+	integer:: counter,c,v,i,j,f,l,h,erro,i2,k, ip
 
 	double complex:: matrizelbsekq
 
@@ -418,8 +418,9 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
       	
       			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
 				if(berryexc) then
-				    do i=1,ngkpt*nc*nv
-						bse_coefficient%A_table(i2,nocp(stt(i,4))+stt(i,3)-nv,nocp(stt(i,4))-nv+stt(i,2),stt(i,4),i) = hbse(i,i2)
+				    do ip=1,ngkpt*nc*nv
+						bse_coefficient%A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),ip) = hbse(i,i2)
+						write(*,*) 'bse_cofficient', bse_coefficient%A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),ip)
 					end do
 				endif
 	  		end do
