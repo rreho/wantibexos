@@ -124,7 +124,7 @@ program main
     	if (erro/=0) stop "Erro na abertura do arquivo de saida parametros calculo"
 
 	call param_out(2077,nthreads,outputfolder,calcparms,ngrid,nc,nv,edos0,edosf,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+		     ebse0,ebsef,numbse,sme,ktol,params,params_mmn,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype)
 
 	close(2077)

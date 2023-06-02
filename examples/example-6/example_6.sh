@@ -13,7 +13,7 @@ DFT= "V"
 OUTPUT= "./out/"
 CALC_DATA= "./out/"
 PARAMS_FILE= "tb_mos2.dat"                                                             
-                                                    
+PARAMS_MMN= "hBN.mmn"                                                    
  
 
 MESH_TYPE= "RK2D"

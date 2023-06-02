@@ -108,7 +108,7 @@ program main
     	if (erro/=0) stop "Error opening log output file "
 
 	call param_out(2077,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+		     ebse0,ebsef,numbse,sme,ktol,params,params_mmn,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,bandscalc,doscalc,bse,bsepol,bsekpath,spec,&
 		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,berryexc,excwf0,excwff,&
 		     tmcoef,ez,w,lc,r0,sysdim,dtfull,cpol,cshift,dft,bset,bsetbnd,&
@@ -184,7 +184,7 @@ program main
 	stop
 	elseif (bsekpath) then
 	 call bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+		     ebse0,ebsef,numbse,sme,ktol,params,params_mmn,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff)	
 		     
 	 write(2077,*) "BSE exciton band structure finished"

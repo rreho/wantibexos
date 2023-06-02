@@ -1,17 +1,17 @@
 !gfortran -mcmodel=large bse_kpath-tool.f90 -o bse_kpath-tool.x -llapack95 -lopenblas -fopenmp 
 
 subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+		     ebse0,ebsef,numbse,sme,ktol,params,params_mmn,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,ez,w1,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff)
 
 	use omp_lib
 	use hamiltonian_input_variables
     use bse_types
-	
+
 	implicit none
 
 	double precision,parameter:: pi=acos(-1.)
-	integer :: dimbse
+	integer :: dimbse, nbands,nntot
 	double precision,allocatable,dimension(:,:) :: exk !(dimbse,nqpts*npath)
 	double complex, allocatable, dimension(:,:,:) :: wfk
 
@@ -49,7 +49,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	!variaveis kpoints
 
 	integer :: nks
-	integer :: nkpts
+	integer :: nkpts, nkpts_mmn
 	double precision,allocatable,dimension(:,:) :: ks
 
 	integer,allocatable,dimension(:) :: nocpk,nocpq
@@ -81,6 +81,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	double precision,dimension(3) :: mshift
 	double precision :: ktol
 	character(len=70) :: params   !parametros TB
+	character(len=70) :: params_mmn !parameter mmn
 	character(len=70) :: orbw     !peso orbitais lcount
 	character(len=70) :: kpaths    !kpath
 	character(len=70) :: kpathsbse    !kpath
@@ -97,6 +98,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	integer :: excwf0,excwff	
 	type(bse_coeff) :: bse_coefficient !
 	complex, allocatable    :: A_table(:,:,:,:,:)
+	double complex, allocatable,dimension(:,:,:,:) :: Mmn ! overlap matrix
 
 	!call input_read
 	! INPUT 
@@ -113,13 +115,15 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	OPEN(UNIT=600, FILE=trim(outputfolder)//"bands_wf_bse.dat",STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening bands_bse output file"		
 	OPEN(UNIT=700, FILE=trim(outputfolder)//"bse_coeff.dat",STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening bands_bse output file"		
+    	if (erro/=0) stop "Error opening bands_bse output file"	
+
 
 	call cpu_time(t0)
 	call date_and_time(VALUES=values)
 	call OMP_SET_NUM_THREADS(nthreads)
 
 	call hamiltonian_input_read(200,params)
+	call mmn_input_read_dimensions(800,params_mmn)
 	!ediel(2) = edielh
 
 	read(500,*) nks
@@ -248,7 +252,12 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	allocate(exk(dimbse,nkpts*(nks-1)))
 	allocate(wfk(dimbse,dimbse,nkpts*(nks-1)))
 	!write(300,*) "dimensions", w90basis, nc,dimbse,(nks/2)*nkpts
-	allocate(A_table(excwff-excwf0+1,w90basis,w90basis,ngkpt,(nks/2)*nkpts))	
+	allocate(A_table(excwff-excwf0+1,w90basis,w90basis,ngkpt,(nks/2)*nkpts))
+	
+	if (berryexc) then
+	allocate(Mmn(nbands,nbands,nkpts_mmn,nntot))	
+	call mmn_input_read_elements(800,params_mmn)
+	end if
 	A_table = cmplx(0.0,0.0)
 
 	write(700,'(2a18,6a8)') 'Re(A^λ_cvkq)','Im(A^λ_cvkq)', 'i2 dim_bse', 'c', 'v', 'k', 'Q idx', 'E(eV)'
@@ -263,7 +272,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		q(3)= qauxv(i,3)
 		q(4)= qauxv(i,4)
 
-		!gerando o grid k+q
+		!gerando o grid k+q , here I effectively already have the k+q point but I am not sure I know the inedex of this q
 		
 		call monhkhorst_packq(q,ngrid(1),ngrid(2),ngrid(3),mshift,&
 				      rlat(1,:),rlat(2,:),rlat(3,:),qpt)
@@ -424,7 +433,7 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 
 	      	do i2=excwf0,excwff
 				!write(*,*) "starting cycle i2", i2
-      			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
+      			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2)) !i is qptnum stt(ip,4) gives the k-point index
 				if(berryexc) then
 				    do ip=1,ngkpt*nc*nv
 						!write(*,*) "starting cycle", ip
@@ -434,6 +443,7 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 						! write(*,*) 'bse_cofficient', A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i)
 						! write(*,*) 'bse indices aft', i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i
 						write(700,Format) real(hbse(ip,i2)),aimag(hbse(ip,i2)),i2,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i, W(ip)
+						call exc_overlap(Mmn,A_table,nbands,nkpts,nntot,i2,stt(ip,4),ip,ip,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))+stt(ip,3)-nv,,nocpk(stt(ip,4))-nv+stt(ip,2),,nocpk(stt(ip,4))-nv+stt(ip,2),excwff-excwf0+1)
 					end do
 				endif
 	  		end do
@@ -506,3 +516,15 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 
 
 end subroutine bsebnds
+
+subroutine exc_overlap(Mmn,A_table,nbands,nkpoints,nntot,n,ik,iq,iqp,c1,c2,v1,v2, excwfftot)
+
+	double complex  :: phase
+	double complex  :: overlap
+	double complex  :: tmp_A1,tmp_A2
+	tmp_A1 = A_table(n,c1,v1,ik,iq)
+	tmp_A2 = A_table(n,c2,v2,ik,iqp)
+	overlap = conjg(tmp_A1)*tmp_A2*Mmn(c1,c2,ik+iq,ik+iqp)*Mmn(v2,v1,ik,ik)
+	phase = aimag(log(overlap))
+	write(*,*) 'phase and overlap', phase, overlap
+end subroutine exc_overlap

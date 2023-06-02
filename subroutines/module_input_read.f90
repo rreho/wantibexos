@@ -192,6 +192,7 @@ module input_variables
 	double precision,dimension(3) :: mshift, ediel
 	double precision :: ktol
 	character(len=70) :: params   !parametros TB
+	character(len=70) :: params_mmn
 	character(len=70) :: orbw     !peso orbitais lcount
 	character(len=70) :: kpaths    !kpath
 	character(len=70) :: kpathsbse    !kpath
@@ -612,6 +613,10 @@ subroutine input_read
 
 		params = b
 
+	case ("PARAMS_MMN_FILE=")
+
+		params_mmn = b		
+
 	case ("KPATH_FILE=")
 
 		kpaths = b
@@ -670,7 +675,7 @@ subroutine input_read
 end subroutine input_read
 
 subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+		     ebse0,ebsef,numbse,sme,ktol,params,params_mmn,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,bandscalc,doscalc,bse,bsepol,bsekpath,spec,&
 		     spdiel,spdielpol,sppolbz,berryk,berrybz,pponly,bsewf,berryexc,excwf0,excwff,&
 		     tmcoef,ez,w,lc,r0,sysdim,dtfull,cpol,cshift,dft,bset,bsetbnd,&
@@ -692,6 +697,7 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 	double precision,dimension(3) :: mshift
 	double precision :: ktol
 	character(len=70) :: params   !parametros TB
+	character(len=70) :: params_mmn
 	character(len=70) :: orbw     !peso orbitais lcount
 	character(len=70) :: kpaths    !kpath
 	character(len=70) :: kpathsbse    !kpath
@@ -730,6 +736,7 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 	write(unitout,"(A8,A70)") "OUTPUT= ", outputfolder
 	write(unitout,"(A11,A70)") "CALC_DATA= ", calcparms
 	write(unitout,"(A13,A70)") "PARAMS_FILE= ", params
+	write(unitout,"(A17,A70)") "PARAMS_MMN_FILE= ", params_mmn
 	write(unitout,"(A12,A70)") "KPATH_FILE= ", kpaths
 	write(unitout,"(A11,A70)") "KPATH_BSE= ", kpathsbse
 	write(unitout,"(A7,A70)") "ORB_W= ", orbw
@@ -823,7 +830,29 @@ subroutine param_out(unitout,nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos,
 
 end subroutine param_out
 
-subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
+
+subroutine mmn_input_read_dimensions(unidade,inputfile)
+	implicit none
+	integer :: nbands ! Number of bands
+    integer :: nkpts_mmn  ! Number of k-points
+    integer :: nntot  ! Total number of non-zero elements
+	integer :: unidade,status
+	character(len=70) :: inputfile
+
+	open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
+    if (status /= 0) then
+        write(*, *) "Error opening file: ", trim(inputfile)
+        stop
+    endif
+
+	! Skip the comment line
+	read(unidade,*)
+	! Read header
+	read(unidade, *) nbands,nkpts_mmn,nntot
+end subroutine mmn_input_read_dimensions
+
+
+subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
     implicit none
     
     integer :: nbands ! Number of bands
@@ -849,8 +878,8 @@ subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
         stop
     endif
     
-    ! Read the comment line
-    read(unidade, *)
+    ! Skip the comment line
+    read(unidade, *) 
     
     ! Read the second line with num_bands, num_kpts, and nntot
     read(unidade, *) ! Skip the second line
@@ -869,7 +898,7 @@ subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
                     read(unidade, *) real_val, imag_val
                     
                     ! Store the values in the arrays
-                    Mmn(m, n, kpt_index,nn_index) = cmplx(real_val,imag_val)
+                    Mmn(n, m, kpt_index,nn_index) = cmplx(real_val,imag_val)
                 end do
             end do
         end do
@@ -879,4 +908,4 @@ subroutine mmn_input_read(unidade, inputfile, nbands,nkpts, nntot)
     close(unidade)
 	deallocate(Mmn)
         
-end subroutine mmn_input_read
+end subroutine mmn_input_read_elements
