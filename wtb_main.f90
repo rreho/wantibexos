@@ -158,7 +158,6 @@ program main
 	stop
 	
 	elseif (bse) then
-	
 	call bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,cshift,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,excwf0,excwff,dtfull,cpol,tmcoef)
@@ -183,9 +182,7 @@ program main
 	
 	write(2077,*) "ERROR: Choose BSE_BND=T or BSET_BND=T not both"
 	stop
-	
 	elseif (bsekpath) then
-	
 	 call bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff)	

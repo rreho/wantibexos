@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+wtbexec="../../bin/wtb.x"
 
 
 

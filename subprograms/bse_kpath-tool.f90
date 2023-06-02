@@ -7,13 +7,13 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	use omp_lib
 	use hamiltonian_input_variables
     use bse_types
-
+	
 	implicit none
 
 	double precision,parameter:: pi=acos(-1.)
 	integer :: dimbse
 	double precision,allocatable,dimension(:,:) :: exk !(dimbse,nqpts*npath)
-
+	double complex, allocatable, dimension(:,:,:) :: wfk
 
 	integer :: ncaux,nvaux
 
@@ -33,7 +33,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
 	double precision,allocatable,dimension(:,:) :: qauxv !(nqpts*npath,4) 
 
-	integer:: counter,c,v,i,j,f,l,h,erro,i2,k, ip
+	integer:: counter,c,v,i,j,f,l,h,erro,i2,k,ip,it
 
 	double complex:: matrizelbsekq
 
@@ -89,15 +89,16 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	character(len=70) :: calcparms
 	character(len=70) :: meshtype
 	character(len=5) :: coultype
+	character(len=30) :: Format
 	double precision,dimension(3) :: ediel
 	double precision :: ez,w1,lc
 	logical :: bsewf
 	logical :: berryexc
 	integer :: excwf0,excwff	
 	type(bse_coeff) :: bse_coefficient !
+	complex, allocatable    :: A_table(:,:,:,:,:)
 
 	!call input_read
-
 	! INPUT 
 	OPEN(UNIT=500, FILE= kpathsbse,STATUS='old', IOSTAT=erro)
     	if (erro/=0) stop "Error opening bse-kpath input file"
@@ -109,7 +110,10 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     	if (erro/=0) stop "Error opening log_bse_kpath output file"
 	OPEN(UNIT=400, FILE=trim(outputfolder)//"bands_bse.dat",STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening bands_bse output file"
-
+	OPEN(UNIT=600, FILE=trim(outputfolder)//"bands_wf_bse.dat",STATUS='unknown', IOSTAT=erro)
+    	if (erro/=0) stop "Error opening bands_bse output file"		
+	OPEN(UNIT=700, FILE=trim(outputfolder)//"bse_coeff.dat",STATUS='unknown', IOSTAT=erro)
+    	if (erro/=0) stop "Error opening bands_bse output file"		
 
 	call cpu_time(t0)
 	call date_and_time(VALUES=values)
@@ -242,9 +246,13 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
 	allocate(qpt(ngkpt,3))
 	allocate(exk(dimbse,nkpts*(nks-1)))
+	allocate(wfk(dimbse,dimbse,nkpts*(nks-1)))
+	!write(300,*) "dimensions", w90basis, nc,dimbse,(nks/2)*nkpts
+	allocate(A_table(excwff-excwf0+1,w90basis,w90basis,ngkpt,(nks/2)*nkpts))	
+	A_table = cmplx(0.0,0.0)
 
-
-
+	write(700,'(2a18,6a8)') 'Re(A^λ_cvkq)','Im(A^λ_cvkq)', 'i2 dim_bse', 'c', 'v', 'k', 'Q idx', 'E(eV)'
+	Format = "(2F15.8,5I,F15.4)"
 	do i=1,(nks/2)*nkpts
 
 		
@@ -400,27 +408,32 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 		do i2=1,dimbse
 
 			exk(i2,i)=W(i2)
-
+			wfk(i2,:,i)=hbse(i2,:) ! should it be hbse(i2,:)?
 		!	write(400,*) qauxv(i,1),W(i2)
 		!	call flush(400)
 
 		end do
 
 !initialize bse coefficiente
-	bse_coefficient%nc = nc
-	bse_coefficient%nv = nv
-	bse_coefficient%nkpts = ngkpt
-	bse_coefficient%nT = excwff-excwf0
-	bse_coefficient%lmbd = dimbse
+	! bse_coefficient%nc = nc
+	! bse_coefficient%nv = nv
+	! bse_coefficient%nkpts = ngkpt
+	! bse_coefficient%nT = excwff-excwf0
+	! bse_coefficient%lmbd = dimbse
 	if (bsewf) then
-	
+
 	      	do i2=excwf0,excwff
-      	
+				!write(*,*) "starting cycle i2", i2
       			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
 				if(berryexc) then
 				    do ip=1,ngkpt*nc*nv
-						bse_coefficient%A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),ip) = hbse(i,i2)
-						write(*,*) 'bse_cofficient', bse_coefficient%A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),ip)
+						!write(*,*) "starting cycle", ip
+						!write(*,*) "shapes", shape(stt), 'ta', shape(hbse), 'stt(ip)', stt(ip,4),i
+						A_table(i2,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i) = hbse(ip,i2)
+						! write(*,*) 'bse indices bef', i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i
+						! write(*,*) 'bse_cofficient', A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i)
+						! write(*,*) 'bse indices aft', i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i
+						write(700,Format) real(hbse(ip,i2)),aimag(hbse(ip,i2)),i2,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i, W(ip)
 					end do
 				endif
 	  		end do
@@ -444,7 +457,7 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 		write(300,*) 'progress:',i,'/',(nks/2)*nkpts
 		call flush(300)
 
-	end do
+	end do !end do i =qpoint
 
 
 
@@ -453,12 +466,16 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 		do i=1,(nks/2)*nkpts
 
 			write(400,*) real(qauxv(i,1)),exk(i2,i)
+!			do it = 1,dimbse
+			write(600,*) real(qauxv(i,1)), 'it', it, sum(wfk(i2,:,i))
+			!end do
 			call flush(400)
+			call flush(600)
 
 		end do
 
 		write(400,*)
-
+		write(600,*)
 	end do
 
 
@@ -470,7 +487,7 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 	deallocate(nocpq,nocpk)
 	deallocate(rvec,hopmatrices)
 	deallocate(ihopmatrices,ffactor)
-
+	deallocate(A_table)
 	call cpu_time(tf)
 	call date_and_time(VALUES=values2)
 

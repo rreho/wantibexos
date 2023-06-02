@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 nthreads=10
-wtbexec="../..//bin/wtb.x"
+wtbexec="../../bin/wtb.x"
 
 mkdir ./out/
 
@@ -17,20 +17,23 @@ PARAMS_FILE= "tb_mos2.dat"
  
 
 MESH_TYPE= "RK2D"
-RK= 120
+RK= 36
 
 BSE= T
 SPEC= T
 DTDIAG= T
 
+BSE_BND= T
 BSE_WF= T
-BERRY_EXC= F
+BERRY_EXC= T
 EXC_WF_I= 1
-EXC_WF_F= 10
+EXC_WF_F= 1
+KPATH_FILE= "tmd-kpoints.dat"  
+KPATH_BSE= "tmd-kpoints-bse.dat" 
 
 COULOMB_POT= V2DT2
-NBANDSC= 2
-NBANDSV= 2
+NBANDSC= 1
+NBANDSV= 1
 LC= 8.00
 
 CSHIFT= 0.08
