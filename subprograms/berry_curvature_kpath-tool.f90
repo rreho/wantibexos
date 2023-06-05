@@ -139,7 +139,7 @@ subroutine berrycurv(nthreads,outputfolder,params,kpaths,sme)
 	! $omp end parallel do
 	!termino definicao kpath
 	
-	write(300,*) "kp yz xz xy"
+	write(300,*) "# kp yz xz xy"
 
 	!$omp do ordered
 	!do j=1,nkpts*(nks-1)
