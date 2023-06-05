@@ -318,7 +318,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	
 		end do
 	! $omp end parallel do
-
+		write(*,*) 'I am crashing here' 
 		call quantumnumbers2(w90basis,ngkpt,nc,nv,nocpk,nocpq,stt)
 
 		deallocate(eaux,vaux)
@@ -522,6 +522,7 @@ subroutine exc_overlap(Mmn,A_table,nbands,nkpoints,nntot,n,ik,iq,iqp,c1,c2,v1,v2
 	double complex  :: phase
 	double complex  :: overlap
 	double complex  :: tmp_A1,tmp_A2
+
 	tmp_A1 = A_table(n,c1,v1,ik,iq)
 	tmp_A2 = A_table(n,c2,v2,ik,iqp)
 	overlap = conjg(tmp_A1)*tmp_A2*Mmn(c1,c2,ik+iq,ik+iqp)*Mmn(v2,v1,ik,ik)

@@ -144,7 +144,7 @@ subroutine berrycurvbz(nthreads,outputfolder,params,sme,ngrid,mshift)
 
 	allocate(output(ngrid(1)*ngrid(2)*ngrid(3),9))
 	
-	write(300,*) "kx ky kz yz xz xy"	
+	write(300,*) "# kx ky kz yz xz xy"	
 
 	!$omp parallel do private(j,bxx,bxy,bxz,byy,byz,bzz)    
 
