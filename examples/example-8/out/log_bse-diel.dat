@@ -1,0 +1,19 @@
+ 
+ 
+ 
+ threads:           1
+ 
+ grid:          24          24          24
+ 
+ ktol-coulomb:     0.1000E-02
+ 
+ kmesh shift:         0.0000         0.0000         0.0000
+ 
+ conduction bands, nc:           1   valence bands, nv:           3
+ 
+ 
+ begin  day           2           17 hours           6 min          59 seg
+ 
+ direct gap:  0.895679705601228     
+ eigenvalues and eigenvectors calculated
+ quantum numbers for exciton basis set finished

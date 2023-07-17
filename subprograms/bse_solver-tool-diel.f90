@@ -159,7 +159,7 @@ subroutine bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
 
 	write(301,*) "#","  ", "exciton energy","  ","xx","  ","yy","  ","zz"," ","xy","  ","xz","  ","yz",&
-	 "  ", "nk", "  ","nv", "  ", "nc"
+	 "  ", "nocpk","  " ,"nk", "  ","nv", "  ", "nc"
 	write(302,*) "#","  ", "exciton energy","  ","xx","  ","yy","  ","zz"," ","sp","  ","sm"	
 
 
@@ -339,7 +339,7 @@ subroutine bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	allocate(vecres(dimbse,15))	
 	
 	write(401,*) "#","  ", "energy","  ","xx","  ","yy","  ","zz","  ","xy","  ","xz","  ","yz", &
-				"  ", "nk","  ", "nv","  ", "nc"
+			"nocpk", "  ", "nk","  ", "nv","  ", "nc"
 	write(403,*) "#","  ", "energy","  ","xx","  ","yy","  ","zz","  ","sp","  ","sm"
 	
 	if (tmcoef) then	
@@ -405,8 +405,8 @@ subroutine bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	
 	do i=1,dimbse
 	
-		write(401,"(7F15.4,3I10.0)") vecres(i,7),vecres(i,8),vecres(i,9),vecres(i,10),vecres(i,11),vecres(i,12),vecres(i,13),&
-					 int(stt(i,4)), int(vecres(i,6)), int(vecres(i,5))
+		write(401,"(7F15.4,4I10.0)") vecres(i,7),vecres(i,8),vecres(i,9),vecres(i,10),vecres(i,11),vecres(i,12),vecres(i,13),&
+					 int(nocpk(stt(i,4))),int(stt(i,4)), int(vecres(i,6)), int(vecres(i,5))
 		write(403,"(6F15.4)") vecres(i,7),vecres(i,8),vecres(i,9),vecres(i,10),vecres(i,14),vecres(i,15)
 		
 		if (tmcoef) then
@@ -610,8 +610,8 @@ subroutine bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	!$omp do ordered
 	do i=1,dimbse
 		!$omp ordered
-		write(301,"(7F15.4,3I10.0)") W(i),actxx(i),actyy(i),actzz(i),actxy(i),actxz(i),actyz(i), &
-		int(stt(i,4)),int(nocpk(stt(i,4))-nv+stt(i,2)),int(nocpk(stt(i,4))-nv+stt(i,3))!, int(vecres(i,6)), int(vecres(i,5))
+		write(301,"(7F15.4,4I10.0)") W(i),actxx(i),actyy(i),actzz(i),actxy(i),actxz(i),actyz(i), &
+		int(nocpk(stt(i,4))),int(stt(i,4)),int(nocpk(stt(i,4))-nv+stt(i,2)),int(nocpk(stt(i,4))-nv+stt(i,3))!, int(vecres(i,6)), int(vecres(i,5))
 		call flush(301)
 		
 		if (cpol) then

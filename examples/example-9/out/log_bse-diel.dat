@@ -1,0 +1,16 @@
+ 
+ 
+ 
+ threads:           1
+ 
+ grid:         111          31         131
+ 
+ ktol-coulomb:     0.1000E-02
+ 
+ kmesh shift:         0.0000         0.0000         0.0000
+ 
+ conduction bands, nc:           1   valence bands, nv:           3
+ 
+ 
+ begin  day           2           17 hours           8 min          47 seg
+ 

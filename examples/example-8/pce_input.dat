@@ -1,0 +1,30 @@
+
+NTHREADS= 1
+SYSDIM= "3D"
+DFT= "V"
+
+OUTPUT= "./out/"
+CALC_DATA= "./out/"
+PARAMS_FILE= "tb_gaas.dat"
+                                                             
+                                                   
+MESH_TYPE= "RK3D"
+RK= 80
+
+PCE= T
+SES= AM15G
+CTEMP= 298.15
+THMAX= 1E-6
+EG= 0.89
+EGD= 0.89
+EGS= 0.89
+EBGS= 0.89
+
+COULOMB_POT= V3D
+NBANDSC= 1
+NBANDSV= 3
+
+CSHIFT= 0.08
+ENSPECI= 0.0
+ENSPECF= 4.0
+

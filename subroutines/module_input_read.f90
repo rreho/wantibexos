@@ -872,12 +872,13 @@ subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
     
     allocate(Mmn(nbands,nbands,nkpts,nntot))
     ! Open the file for reading
+    write(*,*) 'Almost reading the file'
     open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
     if (status /= 0) then
         write(*, *) "Error opening file: ", trim(inputfile)
         stop
     endif
-    
+    write(*,*) 'start reading the file' 
     ! Skip the comment line
     read(unidade, *) 
     
@@ -885,6 +886,7 @@ subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
     read(unidade, *) ! Skip the second line
     
     ! Loop over k-points and non-zero elements
+    write(*,*) 'elements in the loop', nkpts,nntot,nbands
     do kpt_index = 1, nkpts
         do nn_index = 1, nntot
             ! Read the first line of each block
@@ -903,7 +905,7 @@ subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
             end do
         end do
     end do
-    
+    write (*,*) 'Read the mmn file'    
     ! Close the file
     close(unidade)
 	deallocate(Mmn)

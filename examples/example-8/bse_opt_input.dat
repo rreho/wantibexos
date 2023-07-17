@@ -1,0 +1,28 @@
+
+NTHREADS= 1
+SYSDIM= "3D"
+DFT= "V"
+
+OUTPUT= "./out/"
+CALC_DATA= "./out/"
+PARAMS_FILE= "tb_gaas.dat"                                                             
+KPATH_FILE= "gaas-kpoints.dat"                                                           
+                                                       
+ 
+
+MESH_TYPE= "RK3D"
+RK= 80
+
+BANDS= T
+BSE= T
+SPEC= T
+DTDIAG= T
+
+COULOMB_POT= V3D
+NBANDSC= 1
+NBANDSV= 3
+
+CSHIFT= 0.08
+ENSPECI= 0.0
+ENSPECF= 4.0
+
