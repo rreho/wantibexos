@@ -256,7 +256,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	
 	if (berryexc) then
 	allocate(Mmn(nbands,nbands,nkpts_mmn,nntot))	
-	call mmn_input_read_elements(800,params_mmn)
+	call mmn_input_read_elements(800,params_mmn,w90basis,nkpts,nntot)
 	end if
 	A_table = cmplx(0.0,0.0)
 
@@ -442,8 +442,13 @@ hbse(i2,j)= matrizelbsekq(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,
 						! write(*,*) 'bse indices bef', i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i
 						! write(*,*) 'bse_cofficient', A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i)
 						! write(*,*) 'bse indices aft', i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i
-						write(700,Format) real(hbse(ip,i2)),aimag(hbse(ip,i2)),i2,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i, W(ip)
-						call exc_overlap(Mmn,A_table,nbands,nkpts,nntot,i2,stt(ip,4),ip,ip,nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))+stt(ip,3)-nv,,nocpk(stt(ip,4))-nv+stt(ip,2),,nocpk(stt(ip,4))-nv+stt(ip,2),excwff-excwf0+1)
+						write(700,*) real(hbse(ip,i2)),aimag(hbse(ip,i2)),i2,nocpk(stt(ip,4))+stt(ip,3)-nv,&
+&						nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i, W(ip)
+						call exc_overlap(Mmn,A_table,nbands,nkpts,nntot,i2,stt(ip,4),ip,ip, &
+&                                               nocpk(stt(ip,4))+stt(ip,3)-nv, &
+&                                               nocpk(stt(ip,4))+stt(ip,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2), &
+&                                               nocpk(stt(ip,4))-nv+stt(ip,2), &
+&                                               excwff-excwf0+1)
 					end do
 				endif
 	  		end do
