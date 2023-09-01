@@ -431,12 +431,12 @@ subroutine find_neighbour(n1,n2,n3,rlat1,rlat2,rlat3,kpt,neighbours)
     dj = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
     dk = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
 
-    neighbours(n,1) = 1 + k    + n3*j      + n2*n2*(i+di)
-    neighbours(n,2) = 1 + k    + n3*j      + n2*n2*(i-di)
-    neighbours(n,3) = 1 + k    + n3*(j+dj) + n2*n2*i
-    neighbours(n,4) = 1 + k    + n3*(j-dj) + n2*n2*i
-    neighbours(n,5) = 1 + k+dk + n3*j      + n2*n2*i
-    neighbours(n,6) = 1 + k-dk + n3*j      + n2*n2*i
+    neighbours(n,1) = 1 + k    + n3*j      + n3*n2*(i+di)
+    neighbours(n,2) = 1 + k    + n3*j      + n3*n2*(i-di)
+    neighbours(n,3) = 1 + k    + n3*(j+dj) + n3*n2*i
+    neighbours(n,4) = 1 + k    + n3*(j-dj) + n3*n2*i
+    neighbours(n,5) = 1 + k+dk + n3*j      + n3*n2*i
+    neighbours(n,6) = 1 + k-dk + n3*j      + n3*n2*i
 
   enddo
 
