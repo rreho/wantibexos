@@ -423,9 +423,9 @@ subroutine find_neighbour(n1,n2,n3,rlat1,rlat2,rlat3,kpt,neighbours)
   dirlatt(1,:) = rlat1; dirlatt(2,:) = rlat2; dirlatt(3,:) = rlat3
 
   do n = 1, n1*n2*n3
-    i = int(rlat1(1)*kpt(n,1) + rlat2(1)*kpt(n,2) + rlat3(1)*kpt(n,3))
-    j = int(rlat1(2)*kpt(n,1) + rlat2(2)*kpt(n,2) + rlat3(2)*kpt(n,3))
-    k = int(rlat1(3)*kpt(n,1) + rlat2(3)*kpt(n,2) + rlat3(3)*kpt(n,3))
+    i = int(n1*(rlat1(1)*kpt(n,1) + rlat2(1)*kpt(n,2) + rlat3(1)*kpt(n,3)))
+    j = int(n2*(rlat1(2)*kpt(n,1) + rlat2(2)*kpt(n,2) + rlat3(2)*kpt(n,3)))
+    k = int(n3*(rlat1(3)*kpt(n,1) + rlat2(3)*kpt(n,2) + rlat3(3)*kpt(n,3)))
 
     di = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
     dj = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
