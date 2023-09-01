@@ -1,8 +1,8 @@
 !gfortran -mcmodel=large bse_kpath-tool.f90 -o bse_kpath-tool.x -llapack95 -lopenblas -fopenmp 
 
 subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
-		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
-		     exc,mshift,coultype,ez,w1,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff,st,phavg,ta,temp)
+				 ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
+				 exc,mshift,coultype,ez,w1,r0,lc,rk,meshtype,bsewf,berryexc,excwf0,excwff,st,phavg,ta,temp)
 
 	use omp_lib
 	use hamiltonian_input_variables
@@ -63,7 +63,7 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	COMPLEX*16,allocatable,dimension(:,:) :: hbse
 
         INTEGER ::          LWMAX
-   	INTEGER ::         LWORK
+		INTEGER ::         LWORK
 	INTEGER ::         LIWORK, LRWORK
 	INTEGER,allocatable,dimension(:) :: IWORK
         double complex,allocatable,dimension (:) :: WORK
@@ -104,15 +104,15 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
 	! INPUT 
 	OPEN(UNIT=500, FILE= kpathsbse,STATUS='old', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening bse-kpath input file"
+			if (erro/=0) stop "Error opening bse-kpath input file"
 	!OPEN(UNIT=201, FILE= diein,STATUS='old', IOSTAT=erro)
-    	!if (erro/=0) stop "Erro na abertura do arquivo de entrada ambiente dieletrico"
+			!if (erro/=0) stop "Erro na abertura do arquivo de entrada ambiente dieletrico"
 
 	!OUTPUT : criando arquivos de saida
 	OPEN(UNIT=300, FILE=trim(outputfolder)//"log_bse_kpath.dat",STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening log_bse_kpath output file"
+			if (erro/=0) stop "Error opening log_bse_kpath output file"
 	OPEN(UNIT=400, FILE=trim(outputfolder)//"bands_bse.dat",STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening bands_bse output file"
+			if (erro/=0) stop "Error opening bands_bse output file"
 
 
 	call cpu_time(t0)
@@ -202,66 +202,38 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	allocate(nocpq(ngkpt))
 
 	select case (ta)
-	
-	case("FA")
-	
-		tcor = 0.0
-	
-	case("VE")
-	
-		tcor = gapcortemp(st,phavg,temp)
-	
-	case("BE")
-	
-		tcor = gapcortemp2(st,phavg,temp)
-	
-	case default
-	
-		tcor= 0.00
-	
+		case("FA")
+			tcor = 0.0
+		case("VE")	
+			tcor = gapcortemp(st,phavg,temp)
+		case("BE")
+			tcor = gapcortemp2(st,phavg,temp)
+		case default
+			tcor= 0.00
 	end select
 
 	! $omp parallel do
 	do i=1,ngkpt
-
-
 		call eigsys(nthreads,scs+tcor,exc,nocpk(i),&
-			    ffactor,kpt(i,1),kpt(i,2),kpt(i,3),w90basis,nvec,&
-			    rlat,rvec,hopmatrices,&
-		            ihopmatrices,efermi,eaux,vaux)
-
+					ffactor,kpt(i,1),kpt(i,2),kpt(i,3),w90basis,nvec,&
+					rlat,rvec,hopmatrices,&
+								ihopmatrices,efermi,eaux,vaux)
 
 			do j=1,nc+nv
-	
 				energy(i,j)= eaux(nocpk(i)-nv+j)
-
 			end do
-
 
 			do l=1,nc+nv
-
-
 				do h=1,w90basis
-
 					vector(i,l,h)=vaux(nocpk(i)-nv+l,h)
-
-
 				end do
-			
-
 			end do
-
-	
 	end do
 	! $omp end parallel do
 
 	deallocate(eaux,vaux)
 
-
 	!definindo os numeros quanticos dos estados
-
-
-
 
 	write(300,*) "quantum numbers for exciton basis set finished"
 	call flush(300)	
@@ -273,8 +245,7 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 	allocate(A_table(excwff-excwf0+1,w90basis+nc,w90basis,nkpts,(nks/2)*nkpts))	
 	A_table = cmplx(0.0,0.0)
 
-	do i=1,(nks/2)*nkpts
-
+	do i=1,(nks/2)*nkpts ! q-loop
 		
 		!definindo os pontos q
 
@@ -286,48 +257,32 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		!gerando o grid k+q
 		
 		call monhkhorst_packq(q,ngrid(1),ngrid(2),ngrid(3),mshift,&
-				      rlat(1,:),rlat(2,:),rlat(3,:),qpt)
+							rlat(1,:),rlat(2,:),rlat(3,:),qpt)
 
 
 		allocate(eaux(w90basis),vaux(w90basis,w90basis))
 
 		allocate(energyq(ngkpt,nc+nv),vectorq(ngkpt,nc+nv,w90basis))
 
-	allocate (stt(ngkpt*nc*nv,4))
+  	allocate (stt(ngkpt*nc*nv,4))
 
 
 	! $omp parallel do
 		do i2=1,ngkpt
-
-
-
 			call eigsys(nthreads,scs+tcor,exc,nocpq(i2),&
-			            ffactor,qpt(i2,1),qpt(i2,2),qpt(i2,3),w90basis,nvec,&
-			             rlat,rvec,hopmatrices,&
-		                      ihopmatrices,efermi,eaux,vaux)
+									ffactor,qpt(i2,1),qpt(i2,2),qpt(i2,3),w90basis,nvec,&
+									 rlat,rvec,hopmatrices,&
+													ihopmatrices,efermi,eaux,vaux)
 
 				do j=1,nc+nv
-	
 					energyq(i2,j)= eaux(nocpq(i2)-nv+j) 
-
 				end do
 
-	
 				do l=1,nc+nv
-
-
 					do h=1,w90basis
-
 						vectorq(i2,l,h)=vaux(nocpq(i2)-nv+l,h)
-
-	
 					end do
-			
-
 				end do
-
-
-
 	
 		end do
 	! $omp end parallel do
@@ -345,36 +300,25 @@ subroutine bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
         !collapse(2)
 
 		do i2=1,dimbse
-
-
-
 			do j=i2,dimbse
 
-
-
-
-hbse(i2,j)= matrizelbsekqtemp(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,stt(i2,:),energyq(stt(i2,4),stt(i2,3))&
+				hbse(i2,j)= matrizelbsekqtemp(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,rlat,stt(i2,:),energyq(stt(i2,4),stt(i2,3))&
           ,energy(stt(i2,4),stt(i2,2)),vectorq(stt(i2,4)&
           ,stt(i2,3),:) ,vector(stt(i2,4),stt(i2,2),:),kpt(stt(i2,4),:),stt(j,:)&
           ,energyq(stt(j,4),stt(j,3)),energy(stt(j,4),stt(j,2))&
           ,vectorq(stt(j,4),stt(j,3),:),vector(stt(j,4),stt(j,2),:),kpt(stt(j,4),:),temp)
-
-
 			end do
-
-
-
 		end do
 
 	!$omp end parallel do
 
-    		!call LA_HEEVR( hbse, W, JOBZ='N', UPLO='U', ABSTOL=ABSTOL, INFO=INFO ) 
+				!call LA_HEEVR( hbse, W, JOBZ='N', UPLO='U', ABSTOL=ABSTOL, INFO=INFO ) 
 
 
 
-      	!LWORK = 2*dimbse+dimbse**2
-      	!LIWORK = 3 + 5*dimbse
-      	!LRWORK = 1 + 5*dimbse + 2*dimbse**2
+				!LWORK = 2*dimbse+dimbse**2
+				!LIWORK = 3 + 5*dimbse
+				!LRWORK = 1 + 5*dimbse + 2*dimbse**2
 
 	!allocate(WORK(LWORK))
 	!allocate (IWORK(LIWORK))
@@ -382,47 +326,47 @@ hbse(i2,j)= matrizelbsekqtemp(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,r
 
  
 
-      	!CALL ZHEEVD( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, INFO )
-      	!LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      	!LRWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      	!LIWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+				!CALL ZHEEVD( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, LRWORK, IWORK, LIWORK, INFO )
+				!LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+				!LRWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+				!LIWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
 
-      	!CALL ZHEEVD( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK,&
-	!	      RWORK, LRWORK, IWORK, LIWORK,INFO )
-      	!IF( INFO.GT. 0 ) THEN
+				!CALL ZHEEVD( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK,&
+	!				RWORK, LRWORK, IWORK, LIWORK,INFO )
+				!IF( INFO.GT. 0 ) THEN
         !WRITE(*,*)'The algorithm failed to compute eigenvalues.'
         ! STOP
-      	!END IF   
+				!END IF   
 
 
-	allocate (RWORK(3*dimbse-2))
-        LWMAX = 2*dimbse-1
-	allocate(WORK(LWMAX))
+		allocate (RWORK(3*dimbse-2))
+    LWMAX = 2*dimbse-1
+		allocate(WORK(LWMAX))
 	
-	if (bsewf) then
+		if (bsewf) then
 	
-	LWORK = -1
-      	CALL ZHEEV( 'Vectors', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, INFO )
-      	LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      	CALL ZHEEV( 'Vectors', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK,INFO )
-      	IF( INFO.GT. 0 ) THEN
+			LWORK = -1
+			CALL ZHEEV( 'Vectors', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, INFO )
+			LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+			CALL ZHEEV( 'Vectors', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK,INFO )
+			IF( INFO.GT. 0 ) THEN
+       WRITE(*,*)'The algorithm failed to compute eigenvalues.'
+     	 STOP
+			END IF 
+	
+	
+		else
+
+			LWORK = -1
+			CALL ZHEEV( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, INFO )
+			LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
+			CALL ZHEEV( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK,INFO )
+			IF( INFO.GT. 0 ) THEN
         WRITE(*,*)'The algorithm failed to compute eigenvalues.'
-         STOP
-      	END IF 
-	
-	
-	else
-
-     	LWORK = -1
-      	CALL ZHEEV( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK, INFO )
-      	LWORK = MIN( LWMAX, INT( WORK( 1 ) ) )
-      	CALL ZHEEV( 'N', 'U', dimbse, hbse, dimbse, W, WORK, LWORK, RWORK,INFO )
-      	IF( INFO.GT. 0 ) THEN
-        WRITE(*,*)'The algorithm failed to compute eigenvalues.'
-         STOP
-      	END IF 
-      	
-      	end if  
+        STOP
+			END IF 
+				
+		end if  
 
 		!write(*,*) W(1)
 
@@ -443,22 +387,18 @@ hbse(i2,j)= matrizelbsekqtemp(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,r
 	! bse_coefficient%nT = excwff-excwf0
 	! bse_coefficient%lmbd = dimbse
 		if (bsewf) then
-	
-	      	do i2=excwf0,excwff
-      	
-      			call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
+			do i2=excwf0,excwff
+				call excwfi2(outputfolder,ngkpt,kpt,q,nc,nv,nocpk,stt,W(i2),i2,i,hbse(:,i2))
 				if(berryexc) then
-				   do ip=1,ngkpt*nc*nv
+					do ip=1,ngkpt*nc*nv
 						A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i) = hbse(i,i2)
 						write(*,*) 'bse_cofficient', A_table(i2,nocpk(stt(ip,4))+stt(i,3)-nv,nocpk(stt(ip,4))-nv+stt(ip,2),stt(ip,4),i)
-				   end do      	
+					end do				
 				end if
 			end do
-	else
-	
-	 continue
-	
-	end if
+		else
+			continue
+		end if
 
 		deallocate(hbse,W)
 		deallocate(energyq,vectorq)
@@ -474,8 +414,6 @@ hbse(i2,j)= matrizelbsekqtemp(coultype,ktol,w90basis,ediel,lc,ez,w1,r0,ngrid,q,r
 		call flush(300)
 
 	end do
-
-
 
 	do i2=1,dimbse
 

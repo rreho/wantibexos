@@ -21,8 +21,6 @@ subroutine rkmesh(rk,rlat,ngrid)
 	ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
 	ngrid(3) = int(max(1.0,(rk*vsize(3))+0.5))
 
-
-
 end subroutine rkmesh
 
 subroutine rkmesh2D(rk,rlat,ngrid)
@@ -47,8 +45,6 @@ subroutine rkmesh2D(rk,rlat,ngrid)
 	ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
 	ngrid(3) = 1
 
-
-
 end subroutine rkmesh2D
 
 subroutine kpath2(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
@@ -70,11 +66,8 @@ subroutine kpath2(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 	double precision :: kdistot !soma do caminho todo
 	double precision :: kdisaux
 
-
-	
 	OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS.dat',STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening KLABELS output file"
-
 
 	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
@@ -85,8 +78,6 @@ subroutine kpath2(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 		ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
 	
 	end do
-
-
 
 	kdistot= 0.0
 	do i=1,nks/2
@@ -99,7 +90,6 @@ subroutine kpath2(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 	end do
 
 	kdis=kdis/kdistot
-
 
 	kdisaux=0.0
 	write(1733,*) real(kdisaux)
@@ -368,6 +358,8 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 	integer :: i,j,k, counter
 	double precision,dimension(3) :: blat1,blat2,blat3
 
+! integer, optional :: qrank(n1*n2*n3,3), neighbour(n1*n2*n3,6)
+
 	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
 	counter = 1
@@ -397,7 +389,16 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 
 	    kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
 			     +(blat3(3)/dble(n3))*(dble(k))+kshift(3)	
-   
+
+!     qrank(counter, 1) = i; qrank(counter,2) = j; qrank(counter,3) = k
+
+!     neighbour(counter, 1) = counter - (n2+1)*(n2+1) ! +x neighbour
+!     neighbour(counter, 2) = counter + (n3+1)*(n2+1) ! -x neighbour
+!     neighbour(counter, 3) = counter + n3 ! +y neighbour
+!     neighbour(counter, 4) = counter - n3 ! -y neighbour
+!     neighbour(counter, 5) = counter + 1! +z neighbour
+!     neighbour(counter, 6) = counter - 1! -z neighbour
+
 	    counter = counter+1
 
 	  end do
@@ -405,6 +406,42 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 	end do
 
 end subroutine monhkhorst_pack
+
+
+subroutine find_neighbour(n1,n2,n3,rlat1,rlat2,rlat3,kpt,neighbours)
+  implicit none
+  integer, intent(in) :: n1, n2, n3
+  double precision, intent(in) :: rlat1(3), rlat2(3), rlat3(3), kpt(n1*n2*n3,3)
+
+  integer :: i, j, k, counter, n, m, di, dj, dk
+  double precision :: blat1(3), blat2(3), blat3(3), reclatt(3,3), dirlatt(3,3)
+  integer, intent(out) :: neighbours(n1*n2*n3,6)
+  
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)   
+
+  reclatt(1,:) = blat1; reclatt(2,:) = blat2; reclatt(3,:) = blat3
+  dirlatt(1,:) = rlat1; dirlatt(2,:) = rlat2; dirlatt(3,:) = rlat3
+
+  do n = 1, n1*n2*n3
+    i = int(rlat1(1)*kpt(n,1) + rlat2(1)*kpt(n,2) + rlat3(1)*kpt(n,3))
+    j = int(rlat1(2)*kpt(n,1) + rlat2(2)*kpt(n,2) + rlat3(2)*kpt(n,3))
+    k = int(rlat1(3)*kpt(n,1) + rlat2(3)*kpt(n,2) + rlat3(3)*kpt(n,3))
+
+    di = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
+    dj = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
+    dk = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
+
+    neighbours(n,1) = 1 + k    + n3*j      + n2*n2*(i+di)
+    neighbours(n,2) = 1 + k    + n3*j      + n2*n2*(i-di)
+    neighbours(n,3) = 1 + k    + n3*(j+dj) + n2*n2*i
+    neighbours(n,4) = 1 + k    + n3*(j-dj) + n2*n2*i
+    neighbours(n,5) = 1 + k+dk + n3*j      + n2*n2*i
+    neighbours(n,6) = 1 + k-dk + n3*j      + n2*n2*i
+
+  enddo
+
+end subroutine find_neighbour
+
 
 subroutine recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3) !calcula os vetores da rede recíproca, a partir dos vetores da rede real
 

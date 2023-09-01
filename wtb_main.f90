@@ -196,7 +196,7 @@ program main
 	call bsebndstemp(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 		     ebse0,ebsef,numbse,sme,ktol,params,kpaths,kpathsbse,orbw,ediel, &
 		     exc,mshift,coultype,ez,w,r0,lc,rk,meshtype,bsewf,excwf0,excwff,&
-		     st,phavg,ta,temp)	
+		     st,phavg,ta,temp)
 		     
 	 write(2077,*) "BSE exciton band structure, with temperature, finished"
      call flush(2077)
