@@ -358,8 +358,6 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 	integer :: i,j,k, counter
 	double precision,dimension(3) :: blat1,blat2,blat3
 
-! integer, optional :: qrank(n1*n2*n3,3), neighbour(n1*n2*n3,6)
-
 	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
 	counter = 1
@@ -390,15 +388,6 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 	    kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
 			     +(blat3(3)/dble(n3))*(dble(k))+kshift(3)	
 
-!     qrank(counter, 1) = i; qrank(counter,2) = j; qrank(counter,3) = k
-
-!     neighbour(counter, 1) = counter - (n2+1)*(n2+1) ! +x neighbour
-!     neighbour(counter, 2) = counter + (n3+1)*(n2+1) ! -x neighbour
-!     neighbour(counter, 3) = counter + n3 ! +y neighbour
-!     neighbour(counter, 4) = counter - n3 ! -y neighbour
-!     neighbour(counter, 5) = counter + 1! +z neighbour
-!     neighbour(counter, 6) = counter - 1! -z neighbour
-
 	    counter = counter+1
 
 	  end do
@@ -414,13 +403,10 @@ subroutine find_neighbour(n1,n2,n3,rlat1,rlat2,rlat3,kpt,neighbours)
   double precision, intent(in) :: rlat1(3), rlat2(3), rlat3(3), kpt(n1*n2*n3,3)
 
   integer :: i, j, k, counter, n, m, di, dj, dk
-  double precision :: blat1(3), blat2(3), blat3(3), reclatt(3,3), dirlatt(3,3)
+  double precision :: blat1(3), blat2(3), blat3(3)
   integer, intent(out) :: neighbours(n1*n2*n3,6)
   
   call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)   
-
-  reclatt(1,:) = blat1; reclatt(2,:) = blat2; reclatt(3,:) = blat3
-  dirlatt(1,:) = rlat1; dirlatt(2,:) = rlat2; dirlatt(3,:) = rlat3
 
   do n = 1, n1*n2*n3
     i = int(n1*(rlat1(1)*kpt(n,1) + rlat2(1)*kpt(n,2) + rlat3(1)*kpt(n,3)))
@@ -428,8 +414,8 @@ subroutine find_neighbour(n1,n2,n3,rlat1,rlat2,rlat3,kpt,neighbours)
     k = int(n3*(rlat1(3)*kpt(n,1) + rlat2(3)*kpt(n,2) + rlat3(3)*kpt(n,3)))
 
     di = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
-    dj = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
-    dk = int(rlat1(1)*blat1(1)/n1 + rlat2(1)*blat2(1)/n2 + rlat3(1)*blat3(1)/n3)
+    dj = int(rlat1(2)*blat1(1)/n1 + rlat2(2)*blat2(1)/n2 + rlat3(2)*blat3(1)/n3)
+    dk = int(rlat1(3)*blat1(1)/n1 + rlat2(3)*blat2(1)/n2 + rlat3(3)*blat3(1)/n3)
 
     neighbours(n,1) = 1 + k    + n3*j      + n3*n2*(i+di)
     neighbours(n,2) = 1 + k    + n3*j      + n3*n2*(i-di)
