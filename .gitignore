@@ -36,3 +36,16 @@ examples/example-1/example_1.sh
 examples/example-1/tmd-kpoints.dat
 examples/example-2/example_2.sh
 makefile
+examples/example-3/input_mos2_opt.dat
+examples/example-3/tmd-kpoints-bse.dat
+examples/example-3/tmd-kpoints.dat
+examples/example-4/input_mos2_100.dat.dat
+examples/example-4/input_mos2_200.dat.dat
+examples/example-4/input_mos2_300.dat.dat
+examples/example-4/input_mos2_50.dat.dat
+examples/example-5/input_mos2_bseb.dat
+examples/example-6/example_6.sh.mine
+examples/example-6/tmd-kpoints-bse.dat
+examples/example-6/tmd-kpoints.dat
+examples/example-7/input.dat
+examples/example-7/tmd-kpoints.dat
