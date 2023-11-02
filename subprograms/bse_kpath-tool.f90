@@ -164,7 +164,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   ! unknown for why we use half
   ! trying for full grid, since dimbse is defined in this way
 ! nqpts = half*nks*ngkpt
-  nqpts = nks*ngkpt
+  nqpts = ngkpt
   !call alat(systype,rlat,a)
   !lc = rlat3(3)
 
@@ -248,7 +248,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   write(300,*) "dimensions", w90basis, nc,dimbse,(nks/2)*nkpts
 
   allocate(A_table(excwff-excwf0+1,w90basis,w90basis,ngkpt,(nks/2)*nkpts))
-  allocate(bse_table(dimbse,dimbse,(nks/2)*nkpts),exc_exc_overlap(dimbse,nqpts,nqpts))
+  allocate(bse_table(dimbse,dimbse,nqpts),exc_exc_overlap(dimbse,nqpts,nqpts))
   
 ! if (berryexc) then
 !   allocate(Mmn(nbands,nbands,nkpts_mmn,nntot))  
