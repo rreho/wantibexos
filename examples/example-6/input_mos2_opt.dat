@@ -1,4 +1,4 @@
-NTHREADS= 10
+NTHREADS= 4
 SYSDIM= "2D"
 DFT= "V"
 
@@ -17,7 +17,7 @@ DTDIAG= T
 
 BSE_BND= T
 BSE_WF= T
-BERRY_EXC= T
+BERRY_EXC= F
 EXC_WF_I= 1
 EXC_WF_F= 1
 KPATH_FILE= "tmd-kpoints.dat"  

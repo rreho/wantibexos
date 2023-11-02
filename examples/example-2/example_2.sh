@@ -3,8 +3,8 @@
 orbw="cr cr-d cr-p cr-s i i-p i-s"
 orbw=($orbw)
 
-nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+nthreads=4
+wtbexec="../../bin/wtb.x"
 
 #cr - all Cr orbitals contribution
 #cr-d - Cr d orbitals contribution

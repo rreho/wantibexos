@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-nthreads=10
+nthreads=4
 wtbexec="../../bin/wtb.x"
 
 mkdir ./out/
@@ -25,7 +25,7 @@ DTDIAG= T
 
 BSE_BND= T
 BSE_WF= T
-BERRY_EXC= T
+BERRY_EXC= F
 EXC_WF_I= 1
 EXC_WF_F= 1
 KPATH_FILE= "tmd-kpoints.dat"  

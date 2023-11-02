@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+nthreads=4
+wtbexec="../../bin/wtb.x"
 
 mkdir ./out
 
@@ -16,7 +16,7 @@ PARAMS_FILE= "tb_mos2.dat"
                                                            
                                                        
 MESH_TYPE= "RK2D"
-RK= 120
+RK= 30
 
 BSE= T
 SPEC= T

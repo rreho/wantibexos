@@ -396,7 +396,7 @@ subroutine excwf(outputfolder,ngkpt,kpt,nc,nv,nocp,stt,excenergy,excnum,ewf)
 	
 	
 	WRITE (file1,'(a7,I0,a4)') 'exc_wf_',excnum,'.dat'
-	Format = "(I,3F15.4,2I,2E15.4)"
+	Format = "(I0,3F15.4,2I0,2E15.4)"
 	
 	OPEN(UNIT=700+excnum, FILE=trim(outputfolder)//trim(file1),STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening wf BSE output file"
@@ -441,7 +441,7 @@ subroutine excwfi(outputfolder,ngkpt,kpt,qpt,nc,nv,nocp,stt,excenergy,excnum,qpt
 	
 	
 	WRITE (file1,'(a7,I0,a1,I0,a4)') 'exc_wf_',excnum,"_",qptnum,'.dat'
-	Format = "(I,3F15.4,2I,2E15.4)"
+	Format = "(I0,3F15.4,2I0,2E15.4)"
 	
 	OPEN(UNIT=700+excnum*qptnum, FILE=trim(outputfolder)//trim(file1),STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening wf BSE output file"
@@ -549,7 +549,7 @@ subroutine excwf2(outputfolder,ngkpt,kpt,nc,nv,nocp,stt,excenergy,excnum,ewf)
 	
 	
 	WRITE (file1,'(a7,I0,a4)') 'exc_wf_',excnum,'.dat'
-	Format = "(I,3F15.4,2I,2E15.4)"
+	Format = "(I0,3F15.4,2I0,2E15.4)"
 	
 	OPEN(UNIT=700+excnum, FILE=trim(outputfolder)//trim(file1),STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening wf BSE output file"
@@ -594,7 +594,7 @@ subroutine excwfi2(outputfolder,ngkpt,kpt,qpt,nc,nv,nocp,stt,excenergy,excnum,qp
 	
 	
 	WRITE (file1,'(a7,I0,a1,I0,a4)') 'exc_wf_',excnum,"_",qptnum,'.dat'
-	Format = "(I,3F15.4,2I,2E15.4)"
+	Format = "(I0,3F15.4,2I0,2E15.4)"
 	
 	OPEN(UNIT=700+excnum*qptnum, FILE=trim(outputfolder)//trim(file1),STATUS='unknown', IOSTAT=erro)
     	if (erro/=0) stop "Error opening wf BSE output file"

@@ -832,23 +832,23 @@ end subroutine param_out
 
 
 subroutine mmn_input_read_dimensions(unidade,inputfile)
-	implicit none
-	integer :: nbands ! Number of bands
+    implicit none
+    integer :: nbands ! Number of bands
     integer :: nkpts_mmn  ! Number of k-points
     integer :: nntot  ! Total number of non-zero elements
-	integer :: unidade,status
-	character(len=70) :: inputfile
+    integer :: unidade,status
+    character(len=70) :: inputfile
 
-	open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
+    open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
     if (status /= 0) then
         write(*, *) "Error opening file: ", trim(inputfile)
         stop
     endif
 
-	! Skip the comment line
-	read(unidade,*)
-	! Read header
-	read(unidade, *) nbands,nkpts_mmn,nntot
+    ! Skip the comment line
+    read(unidade,*)
+    ! Read header
+    read(unidade, *) nbands,nkpts_mmn,nntot
 end subroutine mmn_input_read_dimensions
 
 
@@ -864,13 +864,15 @@ subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
     integer :: kpt_index, nn_index, m, n
     integer :: kpt_firstBZ, periodic_kpt
     integer :: Gx, Gy, Gz
-	integer :: G_periodic_kpt(nntot,3)
+    integer :: G_periodic_kpt(nntot,3)
     real :: real_val, imag_val
+    double complex, allocatable:: overlaps_mmn(:,:,:,:)
     
     character(len = 70) :: inputfile ! Specify the filename of the seedname.mmn file
     integer :: unidade, status
     
     allocate(Mmn(nbands,nbands,nkpts,nntot))
+    allocate(overlaps_mmn(nbands,nbands,nkpts,nkpts))
     ! Open the file for reading
     write(*,*) 'Almost reading the file'
     open(newunit=unidade, file=inputfile, status='old', action='read', iostat=status)
@@ -884,30 +886,44 @@ subroutine mmn_input_read_elements(unidade, inputfile, nbands,nkpts, nntot)
     
     ! Read the second line with num_bands, num_kpts, and nntot
     read(unidade, *) ! Skip the second line
-    
+
+    overlaps_mmn = cmplx(0.0,0.0)
+
     ! Loop over k-points and non-zero elements
     write(*,*) 'elements in the loop', nkpts,nntot,nbands
     do kpt_index = 1, nkpts
         do nn_index = 1, nntot
-            ! Read the first line of each block
-			G_periodic_kpt(nn_index,:) = (/Gx,Gy,Gz/)
-	        read(unidade, *) kpt_firstBZ, periodic_kpt, Gx, Gy, Gz
-            
-            ! Loop over bands
-            do m = 1, nbands
-                do n = 1, nbands
-                    ! Read the real and imaginary parts
-                    read(unidade, *) real_val, imag_val
+          ! Read the first line of each block
+          G_periodic_kpt(nn_index,:) = (/Gx,Gy,Gz/)
+          read(unidade, *) kpt_firstBZ, periodic_kpt, Gx, Gy, Gz
+
+          ! store the overlaps that exist within the 1st BZ
+!         if (Gx .eq. 0 .and. Gy .eq. 0 .and. Gz .eq. 0) then
+!           neighbours_mmn(kpt_index,nn_index) = 1
+!         endif
+
+          ! Loop over bands
+          do m = 1, nbands
+            do n = 1, nbands
+              ! Read the real and imaginary parts
+              read(unidade, *) real_val, imag_val
                     
-                    ! Store the values in the arrays
-                    Mmn(n, m, kpt_index,nn_index) = cmplx(real_val,imag_val)
-                end do
+              ! Store the values in the arrays
+              Mmn(n, m, kpt_index,nn_index) = cmplx(real_val,imag_val)
+
+              !should I symmetrize the overlaps? <mk|np> = conj(<np|mk>)?
+              if (Gx .eq. 0 .and. Gy .eq. 0 .and. Gz .eq. 0) then
+                overlaps_mmn(n,m,kpt_firstBZ,periodic_kpt) = cmplx(real_val,imag_val)
+                overlaps_mmn(m,n,periodic_kpt,kpt_firstBZ) = conjg(overlaps_mmn(n,m,kpt_firstBZ,periodic_kpt))
+              endif
+              
             end do
+          end do
         end do
     end do
     write (*,*) 'Read the mmn file'    
     ! Close the file
     close(unidade)
-	deallocate(Mmn)
-        
+    deallocate(Mmn)
+    deallocate(overlaps_mmn)        
 end subroutine mmn_input_read_elements

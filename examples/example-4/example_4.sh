@@ -3,8 +3,8 @@
 temperature="50 100 200 300"
 temperature=($temperature)
 
-nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+nthreads=4
+wtbexec="../../bin/wtb.x"
 
 mkdir ./out
 

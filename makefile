@@ -1,14 +1,14 @@
-FOR=ifort
-OMP=-qopenmp
-LIBS=-qmkl
-EXTRA= -shared-intel
+FOR=gfortran-mp-10
+OMP=-fopenmp
+LIBS=-L/opt/local/lib -lopenblas
+EXTRA=-ffree-line-length-512
 DIR="./bin/"
-COND=-fpp 
+COND=-cpp -ffree-line-length-512 -fallow-argument-mismatch
 
 all :
 	
 	$(FOR) wtb_main.f90 -o $(DIR)wtb.x $(LIBS) $(OMP) $(COND)
-	$(FOR) wtb_main.f90 -o $(DIR)wtbf.x $(LIBS) $(OMP) $(COND)-DFAST1	
+	$(FOR) wtb_main.f90 -o $(DIR)wtbf.x $(LIBS) $(OMP) $(COND) -DFAST1	
 	$(FOR) ./utils/nc_nv_finder.f90 -o $(DIR)nc_nv_finder.x $(OMP) $(LIBS)
 	$(FOR) ./utils/param_gen.f90  -o $(DIR)param_gen.x
 	$(FOR) ./utils/param_gen_vasp.f90  -o $(DIR)param_gen_vasp.x
@@ -20,7 +20,7 @@ all :
 
 main :
 	$(FOR) wtb_main.f90 -o $(DIR)wtb.x $(LIBS) $(OMP) $(COND)
-	$(FOR) wtb_main.f90 -o $(DIR)wtbf.x $(LIBS) $(OMP) $(COND)-DFAST1		
+	$(FOR) wtb_main.f90 -o $(DIR)wtbf.x $(LIBS) $(OMP) $(COND) -DFAST1		
 
 
 pp :

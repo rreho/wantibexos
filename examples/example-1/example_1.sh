@@ -3,8 +3,8 @@
 orbw="c1 c1-pz c1-sp2 c2 c-pz"
 orbw=($orbw)
 
-nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+nthreads=4
+wtbexec="../../bin/wtb.x"
 
 #c1 - carbon 1 all orbitals contribution
 #c1-pz - carbon 1 pz orbitals contribution

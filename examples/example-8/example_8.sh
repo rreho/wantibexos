@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-nthreads=10
+nthreads=4
 wtbexec="../../bin/wtb.x"
 
 
