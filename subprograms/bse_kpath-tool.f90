@@ -98,16 +98,23 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   integer :: excwf0,excwff  
   type(bse_coeff) :: bse_coefficient !
   complex, allocatable    :: A_table(:,:,:,:,:), bse_table(:,:,:), exc_exc_overlap(:,:,:)
-  double complex, allocatable,dimension(:,:,:,:) :: Mmn ! overlap matrix
+  double complex, allocatable, dimension(:,:,:,:) :: Mmn ! overlap matrix
+  double complex, allocatable, dimension(:,:,:,:) :: overlaps_mmn
 
   complex, parameter :: czero = (0.0,0.0)
   complex, parameter :: cone = (1.0,0.0)
   complex, parameter :: imun = (0.0,1.0)
   double precision, parameter :: half = 0.5
 
-  integer :: nqpts, dir1, dir2, dir3, ic, iq, n, id1, id2, id3, iq_d1, iq_d2, iq_d3, ijk(ngrid(1)*ngrid(2)*ngrid(3),3)
-  integer, allocatable :: q_neigh(:,:)
-  complex, allocatable :: chern_exc_exc(:,:)
+  integer :: nqpts, dir1, dir2, dir3, ic, iq, n, id1, id2, id3, iq_d1, iq_d2, iq_d3 
+  integer :: ijk(ngrid(1)*ngrid(2)*ngrid(3),3), ic1, ic2,iv, iv1, iv2, ik, id
+  integer :: kmq_index(ngrid(1)*ngrid(2)*ngrid(3),ngrid(1)*ngrid(2)*ngrid(3)), kmq_ijk(3), i_kmq
+  double precision, allocatable :: kmq_grid(:,:,:)  ! ik-iq point =  kmq_grid(ik,iq,1:3)
+  integer, allocatable :: q_neigh(:,:)     ! 
+  complex, allocatable :: chern_exc_exc(:,:) ! exciton-exciton contribution to the total chern number, chern_exc_exc(dimbse,3)
+  complex, allocatable :: chern_exc_hole(:,:) ! exciton-hole contribution to the total chern number, chern_exc_hole(dimbse,3)
+  complex, allocatable :: chern_exc_electron(:,:) ! exciton-electron contribution to the total chern number, chern_exc_electron(dimbse,3)
+  integer, allocatable :: kmq_neighbours(:,:,:) ! neighbours in the k-q grid
   complex ::  rot_overlap, tmp_o(3)
   double precision :: blat(3,3), dk_red(3), dk_car(3)
   print*, 'nks=', nks
@@ -294,7 +301,6 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
       end do
     end do
   ! $omp end parallel do
-!  write(*,*) 'I am crashing here' 
     call quantumnumbers2(w90basis,ngkpt,nc,nv,nocpk,nocpq,stt)
 
     deallocate(eaux,vaux)
@@ -427,13 +433,21 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   if (berryexc) then
 !   print*, '2nd berryexc true'
     print*, 'allocating  neighbours'
+
     allocate(q_neigh(ngrid(1)*ngrid(2)*ngrid(3),6))
     allocate(chern_exc_exc(dimbse,3))
-    chern_exc_exc = czero
+    allocate(chern_exc_hole(dimbse,3))
+    allocate(chern_exc_electron(dimbse,3))
+    allocate(kmq_grid(ngrid(1)*ngrid(2)*ngrid(3),ngrid(1)*ngrid(2)*ngrid(3),3)) ! ik-iq point =  kmq_grid(ik,iq,1:3)
+    allocate(kmq_neighbours(ngrid(1)*ngrid(2)*ngrid(3),ngrid(1)*ngrid(2)*ngrid(3),6)) ! neighbours in the k-q grid
+    
+    chern_exc_exc = czero; chern_exc_hole = czero; chern_exc_electron = czero
     blat = 0.
+    
     print*, 'calling neighbours'
     ! get the list of neighbours in reduced coordinate space
     call find_neighbour(ngrid,rlat,kpt,q_neigh,dk_red,dk_car)
+    
     print*, 'calling neighbour indices'
     ! get the ijk indices of each kpoint
     call get_ijk(kpt,ijk,ngrid,rlat)
@@ -441,7 +455,6 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     ! get the reciprocal lattice vector matrix
     call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
 
-    print*, 'nqpts=', nqpts
     ! calculate all overlaps between exciton states at different q-points
     call calculate_exc_exc_overlap(bse_table,exc_exc_overlap,dimbse,nqpts)
     print*, 'passed calculate_exc_exc_overlap'
@@ -456,8 +469,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
       else
         dir1 = 1; dir2 = 2
       endif
-      print*, 'ic = ', ic
-      print*, 'starting bse states cycle'
+      print*, 'bse ic = ', ic
       do n  = 1, dimbse 
         do iq = 1, ngrid(1)*ngrid(2)*ngrid(3)
           if (kpt(iq,ic) == 0.0) then
@@ -487,10 +499,154 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
           endif 
         enddo !iq
       enddo !n
-      print*, 'bse cycle ended'
     enddo !ic  
+print*, 'exc-exc cycle ended'
 
-  endif !berryexc
+    call mmn_input_read_dimensions(800,params_mmn)
+    if (.not. allocated(overlaps_mmn)) allocate(overlaps_mmn(w90basis,w90basis,nqpts,nqpts))
+    call mmn_input_read_elements(800,params_mmn,w90basis,nqpts,nqpts,overlaps_mmn)
+
+print*, 'starting exc-hole cycle'
+print*, 'building k-q grid and finding its neighbours'
+!build 1st the k-q grid, which is the same for all exction states, and find the neighours of all k-q points
+   do ik = 1, nqpts ! hole k-point
+     do iq = 1, nqpts ! exciton q-point
+       do ic = 1,3
+         ! compute k-q
+         kmq_grid(ik,iq,ic) = kpt(ik,ic) - kpt(iq,ic)
+         ! if the coordinate is larger/smaller than 0.5 bring it back to the [-0.5:0.5]^3 cube
+         if (kmq_grid(ik,iq,ic) .le.- 0.5*(1-0.0001)) then ! PM: what is this 1-0.0001
+           kmq_grid(ik,iq,ic) = kmq_grid(ik,iq,ic) + 1.
+         elseif (kmq_grid(ik,iq,ic) .gt. 0.5*(1+0.001)) then ! PM: same
+           kmq_grid(ik,iq,ic) = kmq_grid(ik,iq,ic) - 1.
+         endif          
+       enddo !ic
+       do id = 1, 3
+         kmq_ijk(id) = int(ngrid(id)*dot_product(rlat(id,1:3),kmq_grid(ik,iq,1:3)))
+       enddo
+       kmq_index(ik,iq) = 1 + kmq_ijk(3) + ngrid(3)*kmq_ijk(2) + ngrid(3)*ngrid(2)*kmq_ijk(1)
+     enddo !iq
+     call find_neighbour(ngrid,rlat,kmq_grid(ik,:,:),kmq_neighbours(ik,:,:),dk_red,dk_car)
+   enddo !ik
+print*, 'found all k-q grid neighbours'
+
+print*, 'compuiting overlaps'
+    do id = 1,3
+      ! directions along which we get the neighbours
+      ! if id = 1 (x), then we need the neighbours along 2 (y) and 3 (z), and so on and so forth
+      if (id == 1) then
+        dir1 = 2; dir2 = 3
+      elseif (id == 2) then
+        dir1 = 3; dir2 = 1
+      else
+        dir1 = 1; dir2 = 2
+      endif
+      do n  = 1, dimbse
+        do iq = 1, ngrid(1)*ngrid(2)*ngrid(3)
+          if (kpt(iq,id) == 0.0) then
+            ! what are the i,j,k indices of this point?
+            i = ijk(iq,1); j = ijk(iq,2); k = ijk(iq,3)
+            ! what are the n-indices along directions 1 and 2?
+            iq_d1 = q_neigh(n,dir1); iq_d2 = q_neigh(n,dir2)
+            do ic = 1, nc
+              do iv1 = 1, nv
+                do iv2 = 1, nv
+                  do ik = 1, ngrid(1)*ngrid(2)*ngrid(3)
+                    i_kmq = kmq_index(ik,iq)
+                    if (iq_d1 > ngrid(dir1) .or. iq_d2 > ngrid(2) .or. iq_d3 > ngrid(3)) then
+                      chern_exc_hole(n,id) = chern_exc_hole(n,id) + &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir1)) - &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,i_kmq) + &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir2))
+                    else
+                      chern_exc_hole(n,id) = chern_exc_hole(n,id) + &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir1)) - &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,i_kmq) + &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir2)) - &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*conjg(overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir1))) - &
+                      A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*conjg(overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir2)))
+                    endif
+                  enddo !ik 
+                enddo !nv
+              enddo !nv
+            enddo !nc
+          endif
+        enddo !iq
+      enddo !n
+    enddo !ic    
+print*, 'overlaps computed'
+print*, 'exc-hole cycle ended'
+
+print*, 'starting exc-electron cycle'
+print*, 'building k+q grid and finding its neighbours'
+!build 1st the k-q grid, which is the same for all exction states, and find the neighours of all k-q points
+   do ic = 1, 3
+     do ik = 1, nqpts ! hole k-point
+       do iq = 1, nqpts ! exciton q-point
+         ! compute k-q
+         kmq_grid(ik,iq,ic) = kpt(ik,ic) + kpt(iq,ic) ! we can use kmq to store k+q after k-q is no longer needed
+         ! if the coordinate is larger/smaller than 0.5 bring it back to the [-0.5:0.5]^3 cube
+         if (kmq_grid(ik,iq,ic) .le.- 0.5*(1-0.0001)) then ! PM: what is this 1-0.0001
+           kmq_grid(ik,iq,ic) = kmq_grid(ik,iq,ic) + 1.
+         elseif (kmq_grid(ik,iq,ic) .gt. 0.5*(1+0.001)) then ! PM: same
+           kmq_grid(ik,iq,ic) = kmq_grid(ik,iq,ic) - 1.
+         endif
+       enddo !ic
+       do id = 1, 3
+         kmq_ijk(id) = int(ngrid(id)*dot_product(rlat(id,1:3),kmq_grid(ik,iq,1:3)))
+       enddo
+       kmq_index(ik,iq) = 1 + kmq_ijk(3) + ngrid(3)*kmq_ijk(2) + ngrid(3)*ngrid(2)*kmq_ijk(1)
+     enddo !iq
+     call find_neighbour(ngrid,rlat,kmq_grid(ik,:,:),kmq_neighbours(ik,:,:),dk_red,dk_car)
+   enddo !ik
+print*, 'found all k+q grid neighbours'
+
+print*, 'compuiting overlaps'
+    do id = 1,3
+      ! directions along which we get the neighbours
+      ! if id = 1 (x), then we need the neighbours along 2 (y) and 3 (z), and so on and so forth
+      if (id == 1) then
+        dir1 = 2; dir2 = 3
+      elseif (id == 2) then
+        dir1 = 3; dir2 = 1
+      else
+        dir1 = 1; dir2 = 2
+      endif
+      do n  = 1, dimbse
+        do iq = 1, ngrid(1)*ngrid(2)*ngrid(3)
+          if (kpt(iq,id) == 0.0) then
+            ! what are the i,j,k indices of this point?
+            i = ijk(iq,1); j = ijk(iq,2); k = ijk(iq,3)
+            ! what are the n-indices along directions 1 and 2?
+            iq_d1 = q_neigh(n,dir1); iq_d2 = q_neigh(n,dir2)
+            do ic1 = 1, nc
+              do ic2 = 1, nc
+                do iv = 1, nv
+                  do ik = 1, ngrid(1)*ngrid(2)*ngrid(3)
+                    i_kmq = kmq_index(ik,iq)
+                    if (iq_d1 > ngrid(dir1) .or. iq_d2 > ngrid(2) .or. iq_d3 > ngrid(3)) then
+                        chern_exc_electron(n,id) = chern_exc_electron(n,id) + &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir1)) - &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,i_kmq) + &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir2))
+                    else
+                        chern_exc_electron(n,id) = chern_exc_electron(n,id) + &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir1)) - &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,i_kmq) + &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir2)) - &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*conjg(overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir1))) - &
+                        A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*conjg(overlaps_mmn(ic1,ic2,i_kmq,kmq_neighbours(ik,iq,dir2)))
+                    endif
+                  enddo
+                enddo !iv
+              enddo !ic2
+            enddo !ic1
+          endif
+        enddo !iq
+      enddo !n
+    enddo !ic
+
+endif !berryexc
 
   print*, 'passed berryexc'
 
@@ -515,11 +671,14 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   deallocate(rvec,hopmatrices)
   deallocate(ihopmatrices,ffactor)
   deallocate(A_table)
+  if (allocated(overlaps_mmn)) deallocate(overlaps_mmn)
+  if (allocated(chern_exc_exc)) deallocate(chern_exc_exc)
+  if (allocated(exc_exc_overlap)) deallocate(exc_exc_overlap)
   call cpu_time(tf)
   call date_and_time(VALUES=values2)
 
   if (allocated(q_neigh)) deallocate(q_neigh)
-  if (allocated(chern_exc_exc)) deallocate(chern_exc_exc)
+  if (allocated(chern_exc_hole)) deallocate(chern_exc_hole)
 
   write(300,*)
   write(300,*) 'end','   ','day',values2(3),'',values2(5),'hours',values2(6),'min',values2(7),'seg'
@@ -567,7 +726,7 @@ subroutine calculate_exc_exc_overlap(bse_mat,overlap,matdim,nq)
   print*, 'shape of bse_mat', shape(bse_mat)
   print*, 'shape of overlap', shape(overlap)  
   do il = 1, matdim
-    call zgemm('c','n', nq, nq, matdim, cone, bse_mat(il,1:matdim,1:nq), matdim, bse_mat(il,1:matdim,1:nq), matdim, czero,overlap(il,1:nq,1:nq), nq)
+    call zgemm('n','n', nq, nq, matdim, cone, bse_mat(il,1:matdim,1:nq), matdim, bse_mat(il,1:matdim,1:nq), matdim, czero,overlap(il,1:nq,1:nq), nq)
   enddo
   print*, 'passed zgemm call for ', nq
 end subroutine calculate_exc_exc_overlap

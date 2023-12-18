@@ -522,12 +522,12 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
     k_red(n,1:3) = matmul(dlat(1:3,1:3),kpt(n,1:3))
   enddo
 
-  ! Shift all points with coordinates that are outside the cube [-0.5,0.5]^3 to inside the cube by adding or subtracting 1
+  ! Shift all points with coordinates that are outside the cube ]-0.5,0.5]^3 to inside the cube by adding or subtracting 1
   do ik = 1, nmax
     do id  = 1, 3
-      if ((k_red(ik,id) .le.- 0.5*(1-0.0001))) then
+      if ((k_red(ik,id) .le. -0.5*(1.-0.0005))) then    ! check flag for kpoint tolerance 
         k_red(ik,id) = k_red(ik,id) + 1.
-      elseif ((k_red(ik,id) .gt. 0.5*(1+0.001))) then
+      elseif ((k_red(ik,id) .gt. 0.5*(1.+0.0005))) then  ! same as above
         k_red(ik,id) = k_red(ik,id) - 1.
       endif
     enddo
@@ -559,9 +559,6 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
     end do
   end do
 
-  write (*,*) 'After sorting x', x,'y', y
-  write (*,*) 'End sorting'
-
   dk_red = (/1./nkpt(1),1./nkpt(2),1./nkpt(3)/)
       
   dk_car = matmul(blat,dk_red)
@@ -587,11 +584,6 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
         i_qip1_j   = 1 + nkpt(3)*j + nkpt(3)*nkpt(2)*(i+1)
         i_qip1_jp1 = 1 + nkpt(3)*(j+1) + nkpt(3)*nkpt(2)*(i+1)
         i_qjp1     = 1 + nkpt(3)*(j+1) + nkpt(3)*nkpt(2)*i
-        write (*,*) 'q indices',i_q,i_qip1_j,i_q,i_qip1_jp1,i_qjp1
-        write (*,*) 'q points', q
-        write (*,*) 'q points', qip1_j
-        write (*,*) 'q points', qip1_jp1
-        write (*,*) 'q points',qi_jp1
 
         neighbours(n,1,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i+di) ! neighbour in +dx
         neighbours(n,2,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i-di) ! neighbour in -dx
