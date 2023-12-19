@@ -440,7 +440,7 @@ subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 	double precision,dimension(3) :: shift,kshift
 	double precision,dimension(3) :: rlat1,rlat2,rlat3
 	double precision,dimension(n1*n2*n3,3) :: kpt
-
+	double precision,dimension(n1,n2,n3) :: kpt_table
 	integer :: i,j,k, counter
 	double precision,dimension(3) :: blat1,blat2,blat3
 
@@ -493,17 +493,17 @@ subroutine get_ijk(kpoint,ijk,nkpt,rlat)
   integer :: id,n
 
   do id = 1, 3
-    do n = 1, nkpt(1)*nkpt(2)*nkpt(3)
-      ijk(n,id) = int(nkpt(id)*dot_product(rlat(id,1:3),kpoint(n,1:3)))
+    do n = 1, nkpt(1)*nkpt(2)*nkpt(3)  
+      ijk(n,id) = nint(nkpt(id)*kpoint(n,id))
     enddo
   enddo
 
 end subroutine get_ijk
 
-subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
+subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid is the original kgrid in reduced coordinate
   implicit none
   integer, intent(in) :: nkpt(3)
-  double precision, intent(in) :: dlat(3,3), kpt(nkpt(1)*nkpt(2)*nkpt(3),3)
+  double precision, intent(in) :: dlat(3,3), kpt(nkpt(1)*nkpt(2)*nkpt(3),3), kgrid(nkpt(1)*nkpt(2)*nkpt(3),3)
   double precision :: x(nkpt(1),nkpt(2)), y(nkpt(1),nkpt(2)), z(nkpt(1),nkpt(2),nkpt(3)), tmp_x, tmp_y, tmp_z
   double precision :: r_h(3), q(3),qip1_j(3), qip1_jp1(3), qi_jp1(3), phi_n, phase, Nkpoints(3), &
               nx,ny,nz, sum_phases,delta, deltakkp, k_red(nkpt(1)*nkpt(2)*nkpt(3),3), dk_red(3), dk_car(3)
@@ -511,7 +511,17 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
   integer :: i, j, k, l, n, counter, m, di, dj, dk, ik, nmax, id, i_q, i_qip1_j, i_qip1_jp1, i_qjp1    
   double precision :: blat(3,3)
   integer, intent(inout) :: neighbours(nkpt(1)*nkpt(2)*nkpt(3),6,2)
-  
+  real, parameter :: tol = 1.0e-6 
+  double precision, dimension(3) :: k_plus_dx, k_minus_dx,k_plus_dy, k_minus_dy,k_plus_dz, k_minus_dz 
+  interface
+  function find_kpoint_index(kpoints, nkpts, point) result(index)
+      integer, intent(in) :: nkpts
+      double precision, dimension(nkpts, 3), intent(in) :: kpoints
+      double precision, dimension(3), intent(in) :: point
+      integer :: index
+  end function find_kpoint_index
+  end interface    
+ 
   call recvec(dlat(1,:),dlat(2,:),dlat(3,:),blat(1,:),blat(2,:),blat(3,:))   
 
   neighbours(:,:,2) = 1
@@ -519,16 +529,16 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
   ! 1st step is to convert all k-points to reduced coordinates
   nmax = nkpt(1)*nkpt(2)*nkpt(3)
   do n = 1, nmax
-    k_red(n,1:3) = matmul(dlat(1:3,1:3),kpt(n,1:3))
+    k_red(n,1:3) = kpt(n,1:3)
   enddo
 
   ! Shift all points with coordinates that are outside the cube ]-0.5,0.5]^3 to inside the cube by adding or subtracting 1
   do ik = 1, nmax
     do id  = 1, 3
-      if ((k_red(ik,id) .le. -0.5*(1.-0.0005))) then    ! check flag for kpoint tolerance 
-        k_red(ik,id) = k_red(ik,id) + 1.
-      elseif ((k_red(ik,id) .gt. 0.5*(1.+0.0005))) then  ! same as above
-        k_red(ik,id) = k_red(ik,id) - 1.
+		if (k_red(ik,id) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+			k_red(ik,id) = k_red(ik,id) + 1.
+		elseif (k_red(ik,id) .ge. 1.0-tol) then ! PM: same
+			k_red(ik,id) = k_red(ik,id) - 1.
       endif
     enddo
   enddo
@@ -573,6 +583,37 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
   ! Calculate the flux through each plaquette
 ! total_flux =0.00
 ! all_phases =0.00
+  do ik = 1,nmax
+	k_plus_dx(1:3) = k_red(ik,1:3)+(/dk_red(1),0.0d0,0.0d0/)
+	k_minus_dx(1:3) = k_red(ik,1:3)+(/-dk_red(1),0.0d0,0.0d0/)
+	k_plus_dy = k_red(ik,1:3)+(/0.0d0,dk_red(2),0.0d0/)
+	k_minus_dy = k_red(ik,1:3)+(/0.0d0,-dk_red(2),0.0d0/)
+	k_plus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,dk_red(3)/)
+	k_minus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,-dk_red(3)/)		
+	if (k_minus_dx(1) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+		k_minus_dx(1) = k_minus_dx(1) + 1.
+	elseif (k_plus_dx(1) .ge. 1.0-tol) then ! PM: same
+		k_plus_dx(1) = k_plus_dx(1) - 1.
+	endif
+	if (k_minus_dy(2) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+		k_minus_dy(2) = k_minus_dy(2) + 1.
+	elseif (k_plus_dy(2) .ge. 1.0-tol) then ! PM: same
+		k_plus_dy(2) = k_plus_dy(2) - 1.		
+	endif
+	if (k_minus_dz(3) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+		k_minus_dz(3) = k_minus_dz(3) + 1.
+	elseif (k_plus_dz(3) .ge. 1.0-tol) then ! PM: same
+		k_plus_dz(3) = k_plus_dz(3) - 1.
+	endif
+
+	neighbours(n,1,1) = find_kpoint_index(kgrid, nmax, k_plus_dx(1:3)) ! neighbour in +dx
+	neighbours(n,2,1) = find_kpoint_index(kgrid, nmax, k_minus_dx(1:3))  ! neighbour in -dx
+	neighbours(n,3,1) = find_kpoint_index(kgrid, nmax, k_plus_dy(1:3))      ! neighbour in +dy
+	neighbours(n,4,1) = find_kpoint_index(kgrid, nmax, k_minus_dy(1:3))     ! neighbour in -dx
+	neighbours(n,5,1) = find_kpoint_index(kgrid, nmax, k_plus_dz(1:3))       ! neighbour in +dz
+	neighbours(n,6,1) = find_kpoint_index(kgrid, nmax, k_minus_dz(1:3))      ! neighbour in -dx	
+  end do
+
   do k = 1, nkpt(3) 
     do j = 1, nkpt(2) 
       do i = 1, nkpt(1) 
@@ -585,12 +626,18 @@ subroutine find_neighbour(nkpt,dlat,kpt,neighbours,dk_red,dk_car)
         i_qip1_jp1 = 1 + nkpt(3)*(j+1) + nkpt(3)*nkpt(2)*(i+1)
         i_qjp1     = 1 + nkpt(3)*(j+1) + nkpt(3)*nkpt(2)*i
 
-        neighbours(n,1,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i+di) ! neighbour in +dx
-        neighbours(n,2,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i-di) ! neighbour in -dx
-        neighbours(n,3,1) = 1 + k     + nkpt(3)*(j+dj) + nkpt(3)*nkpt(2)*i      ! neighbour in +dy
-        neighbours(n,4,1) = 1 + k     + nkpt(3)*(j-dj) + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
-        neighbours(n,5,1) = 1 + k + 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in +dz
-        neighbours(n,6,1) = 1 + k - 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
+        ! neighbours(n,1,1) = find_kpoint_index(kpt_red, nmax, point)1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i+di) ! neighbour in +dx
+        ! neighbours(n,2,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i-di) ! neighbour in -dx
+        ! neighbours(n,3,1) = 1 + k     + nkpt(3)*(j+dj) + nkpt(3)*nkpt(2)*i      ! neighbour in +dy
+        ! neighbours(n,4,1) = 1 + k     + nkpt(3)*(j-dj) + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
+        ! neighbours(n,5,1) = 1 + k + 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in +dz
+        ! neighbours(n,6,1) = 1 + k - 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in -dx		
+        ! neighbours(n,1,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i+di) ! neighbour in +dx
+        ! neighbours(n,2,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i-di) ! neighbour in -dx
+        ! neighbours(n,3,1) = 1 + k     + nkpt(3)*(j+dj) + nkpt(3)*nkpt(2)*i      ! neighbour in +dy
+        ! neighbours(n,4,1) = 1 + k     + nkpt(3)*(j-dj) + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
+        ! neighbours(n,5,1) = 1 + k + 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in +dz
+        ! neighbours(n,6,1) = 1 + k - 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
 !      overlap = S_lambda_qqp(i1,i_qip1_j,i_q)* &
 !               S_lambda_qqp(i1,i_qip1_jp1,i_qip1_j)* &
 !               S_lambda_qqp(i1,i_q,i_qjp1)
@@ -795,3 +842,31 @@ subroutine gridgenhex(ngrid,a,ncounter,kg)
 
 
 end subroutine gridgenhex
+
+function find_kpoint_index(kpoints, nkpts, point) result(index)
+	integer, intent(in) :: nkpts
+	double precision, dimension(nkpts, 3), intent(in) :: kpoints
+	double precision, dimension(3), intent(in) :: point
+	real, parameter :: tolerance = 1.0e-6 
+	integer :: index
+  
+	integer :: i
+	logical :: found
+  
+	found = .false.
+	index = -1  ! Initialize index to -1 to indicate 'not found' by default
+  
+	do i = 1, nkpts
+		if (all(abs(kpoints(i, :) - point) < tolerance)) then
+			index = i
+			found = .true.
+			exit  ! Exit the loop once the point is found
+		endif
+	enddo
+  
+	if (.not. found) then
+		print *, 'Point not found in the list.', point
+	endif
+  end function find_kpoint_index
+  
+  
