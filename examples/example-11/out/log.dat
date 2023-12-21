@@ -1,0 +1,96 @@
+NTHREADS= 1
+SYSDIM= 3D
+DFT= O
+ 
+ INPUT/OUTPUT FILES
+ 
+OUTPUT= ./out/                                                                
+CALC_DATA= ./out/                                                                
+PARAMS_FILE= wannier90_hr.dat                                                      
+PARAMS_MMN_FILE= wannier90.mmn                                                         
+KPATH_FILE= tmd-kpoints.dat                                                       
+KPATH_BSE= tmds-kpoints-bse.dat                                                  
+ORB_W= non declared file                                                     
+ 
+ CONTROL
+ 
+BANDS= F
+DOS= F
+BSE= T
+BSET= F
+BSE_BND= T
+BSET_BND= F
+DIEL= F
+OPT_BZ= F
+SPEC= T
+BERRY_BZ= F
+BERRY= F
+PP_ONLY= F
+BSE_WF= T
+BERRY_EXC= T
+TMCOEF= F
+DTDIAG= T
+CPOL= F
+PCE= F
+ 
+ K-MESH
+ 
+NGX= 3
+NGY= 3
+NGZ= 3
+SHIFT_1=   0.0000
+SHIFT_2=   0.0000
+SHIFT_3=   0.0000
+ 
+ DOS
+ 
+NEDOS= 6001
+SIGMA=   0.0800
+ 
+ BSE/OPTICAL PROPERTIES
+ 
+NBANDSC= 1
+NBANDSV= 1
+ENSPECI=   0.0000
+ENSPECF=   4.0000
+NESPEC= 6001
+KTOL=   0.0010
+EXC_WF_I= 1
+EXC_WF_F= 1
+COULOMB_POT= V3DL 
+CSHIFT=   0.0800
+RNMD= T
+ 
+ PARAMETERS FOR COULOMB POTENTIALS
+ 
+EDIEL_Z=   1.0000
+W_COUL=   0.0000
+LC=   2.0000
+R_0=   1.0000
+EDIEL_T=   1.0000
+EDIEL_B=   1.0000
+EDIEL=   1.0000
+ 
+ PARAMETERS FOR BSE with Temperature Effects
+ 
+TA= FA
+ST=   0.0000
+PHAVG=   0.0000
+TEMP=   0.0000
+ 
+ PARAMETERS FOR PCE
+ 
+SES= AM15G 
+CTEMP= 298.1500
+THMAX=      0.5000E-05
+EG=   0.0000
+EGD=   0.0000
+EGS=   0.0000
+EBGS=   0.0000
+ 
+ 
+ 
+ Begin  day          21           16 hours          47 min          55 seg
+ 
+ BSE and Single particle dielectric calculation finished
+ BSE exciton band structure finished

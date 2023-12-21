@@ -107,7 +107,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   double precision, parameter :: half = 0.5
 
   integer :: nqpts, dir1, dir2, dir3, ic, iq, n, id1, id2, id3, iq_d1, iq_d2, iq_d3 
-  integer :: ijk(ngrid(1)*ngrid(2)*ngrid(3),3), ic1, ic2,iv, iv1, iv2, ik, id
+  integer :: ijk(ngrid(1)*ngrid(2)*ngrid(3),3), ic1, ic2,iv, iv1, iv2, ik, id, ii
   integer :: kmq_index(ngrid(1)*ngrid(2)*ngrid(3),ngrid(1)*ngrid(2)*ngrid(3)), kmq_ijk(3), i_kmq
   double precision, allocatable :: kmq_grid(:,:,:)  ! ik-iq point =  kmq_grid(ik,iq,1:3)
   integer, allocatable :: q_neigh(:,:)     ! 
@@ -221,7 +221,6 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   
   !shift= 0.0
   call monhkhorst_pack(ngrid(1),ngrid(2),ngrid(3),mshift,rlat(1,:),rlat(2,:),rlat(3,:),kpt)
-  !call gridgenmhp(ngrid,rlat,kpt)
 
   allocate(eaux(w90basis),vaux(w90basis,w90basis))
   allocate(energy(ngkpt,nc+nv),vector(ngkpt,nc+nv,w90basis))
@@ -274,9 +273,9 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   write(700,'(2a18,6a8)') 'Re(A^λ_cvkq)','Im(A^λ_cvkq)', 'i2 dim_bse', 'c', 'v', 'k', 'Q idx', 'E(eV)'
   Format = "(2F15.8,5I,F15.4)"
 
-  do i=1,(nks/2)*nkpts
+  do i=1,nks/2*nkpts
     !definindo os pontos q
-
+    
     q(1)= qauxv(i,1)
     q(2)= qauxv(i,2) 
     q(3)= qauxv(i,3)
@@ -286,6 +285,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     
     call monhkhorst_packq(q,ngrid(1),ngrid(2),ngrid(3),mshift,&
               rlat(1,:),rlat(2,:),rlat(3,:),qpt)
+
 
     allocate(eaux(w90basis),vaux(w90basis,w90basis))
 
@@ -455,6 +455,9 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     do n = 1, nqpts
       kpt_red(n,1:3) = matmul(rlat(1:3,1:3),kpt(n,1:3))/(2*pi)
     enddo
+    do i=1, ngkpt
+      print*, kpt_red(i,:) 
+    enddo      
     print*, 'mat', rlat(1:3,1:3)
     print*, 'calling neighbours'
     ! get the list of neighbours in reduced coordinate space
@@ -466,7 +469,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
 
     ! get the reciprocal lattice vector matrix
     call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
-
+    A_table(:,:,:,:,:) = 1.0
     ! calculate all overlaps between exciton states at different q-points
     call calculate_exc_exc_overlap(bse_table,exc_exc_overlap,dimbse,nqpts)
     print*, 'passed calculate_exc_exc_overlap'
@@ -503,7 +506,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
               enddo
             enddo
             ! boundary check
-            if (iq_d1 > ngrid(dir1) .or. iq_d2 > ngrid(2) .or. iq_d3 > ngrid(3)) then
+            if (iq_d1 .ge. ngrid(dir1) .or. iq_d2 .ge. ngrid(2) .or. iq_d3 .ge. ngrid(3)) then
               chern_exc_exc(n,ic) = chern_exc_exc(n,ic) + rot_overlap
             else
               chern_exc_exc(n,ic) = chern_exc_exc(n,ic) + 2*aimag(rot_overlap)
@@ -511,7 +514,8 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
           endif 
         enddo !iq
       enddo !n
-    enddo !ic  
+    enddo !ic 
+chern_exc_exc = 1.0/ngkpt * chern_exc_exc ! volume factor
 print*, 'exc-exc cycle ended', chern_exc_exc
 
     call mmn_input_read_dimensions(800,params_mmn)
@@ -599,6 +603,7 @@ kmq_index = 0.0
       enddo !n
     enddo !ic    
 print*, 'overlaps computed'
+chern_exc_hole = 1.0/ngkpt * chern_exc_hole
 print*, 'exc-hole cycle ended', chern_exc_hole
 
 print*, 'starting exc-electron cycle'
@@ -623,13 +628,12 @@ kmq_index = 0.0
          kmq_ijk(id) = nint(ngrid(id)*kmq_grid(ik,iq,id))
        enddo
        kmq_index(ik,iq) = find_kpoint_index(kpt_red, nqpts, kmq_grid(ik,iq,1:3))
-       print*, 'kmq_index', kmq_index(ik,iq)
      enddo !iq
      call find_neighbour(ngrid,rlat,kmq_grid(ik,:,:),kpt_red,kmq_neighbours(ik,:,:),dk_red,dk_car)
    enddo !ik
 print*, 'found all k+q grid neighbours'
 
-print*, 'compuiting overlaps'
+print*, 'computing overlaps'
     do id = 1,3
       ! directions along which we get the neighbours
       ! if id = 1 (x), then we need the neighbours along 2 (y) and 3 (z), and so on and so forth
@@ -677,6 +681,7 @@ print*, 'compuiting overlaps'
     enddo !ic
 
 endif !berryexc
+chern_exc_electron = 1.0/ngkpt * chern_exc_electron
 print*, 'exc-electron cycle ended', chern_exc_electron
   print*, 'passed berryexc'
 
@@ -738,7 +743,6 @@ subroutine exc_overlap(Mmn,A_table,nbands,nkpoints,nntot,n,ik,iq,iqp,c1,c2,v1,v2
   tmp_A2 = A_table(n,c2,v2,ik,iqp)
   overlap = conjg(tmp_A1)*tmp_A2*Mmn(c1,c2,ik+iq,ik+iqp)*Mmn(v2,v1,ik,ik)
   phase = aimag(log(overlap))
-  write(*,*) 'phase and overlap', phase, overlap
 end subroutine exc_overlap
 
 ! computes the exciton-exciton term of the Chern number
@@ -756,9 +760,8 @@ subroutine calculate_exc_exc_overlap(bse_mat,overlap,matdim,nq)
   double complex :: bse_mat(1:matdim,1:matdim,1:nq), overlap(matdim,nq,nq)
   integer, intent(in) :: matdim, nq
   integer :: il
-  
   print*, 'shape of bse_mat', shape(bse_mat)
-  print*, 'shape of overlap', shape(overlap)  
+  print*, 'shape of overlap', shape(overlap)
   do il = 1, matdim
     call zgemm('n','n', nq, nq, matdim, cone, bse_mat(il,1:matdim,1:nq), matdim, bse_mat(il,1:matdim,1:nq), matdim, czero,overlap(il,1:nq,1:nq), nq)
   enddo

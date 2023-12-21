@@ -1,0 +1,34 @@
+NTHREADS= 1
+SYSDIM= "3D"
+DFT= "O"
+
+OUTPUT= "./out/"
+CALC_DATA= "./out/"
+PARAMS_FILE= "wannier90_hr.dat"                                                             
+PARAMS_MMN_FILE= "wannier90.mmn"                                                    
+ 
+NGX= 3
+NGY= 3
+NGZ= 3
+
+BSE= T
+SPEC= T
+DTDIAG= T
+
+BSE_BND= T
+BSE_WF= T
+BERRY_EXC= T
+EXC_WF_I= 1
+EXC_WF_F= 1
+KPATH_FILE= "tmd-kpoints.dat"  
+KPATH_BSE= "tmds-kpoints-bse.dat" 
+
+COULOMB_POT= V3DL
+NBANDSC= 1
+NBANDSV= 1
+LC= 2.00
+
+CSHIFT= 0.08
+ENSPECI= 0.0
+ENSPECF= 4.0
+	
