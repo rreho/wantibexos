@@ -461,15 +461,22 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     print*, 'mat', rlat(1:3,1:3)
     print*, 'calling neighbours'
     ! get the list of neighbours in reduced coordinate space
-    call find_neighbour(ngrid,rlat,kpt_red, kpt_red, q_neigh,dk_red,dk_car)
-    
+    call find_neighbour(ngrid,kpt_red,q_neigh)
+
     print*, 'calling neighbour indices'
     ! get the ijk indices of each kpoint
     call get_ijk(kpt_red,ijk,ngrid,rlat)
 
     ! get the reciprocal lattice vector matrix
     call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
-    A_table(:,:,:,:,:) = 1.0
+ 
+    ! get the reduced lattice differential dk_red
+    dk_red(1:3) = 1.0/nkpt(1:3)
+ 
+    ! get the cartesian lattice differential dk_car
+    dk_car = matmul(blat,dk_red)
+
+!   A_table(:,:,:,:,:) = 1.0
     ! calculate all overlaps between exciton states at different q-points
     call calculate_exc_exc_overlap(bse_table,exc_exc_overlap,dimbse,nqpts)
     print*, 'passed calculate_exc_exc_overlap'
@@ -491,18 +498,16 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
             ! what are the i,j,k indices of this point?
             i = ijk(iq,1); j = ijk(iq,2); k = ijk(iq,3)
             ! what are the n-indices along directions 1 and 2?
-            iq_d1 = q_neigh(n,dir1); iq_d2 = q_neigh(n,dir2)
-            ! dimensional factors due to the use of reduced coordinates in the derivatives
-            tmp_o(1) = exc_exc_overlap(n,iq,1) ! overlap (i,j,k),(i+1,j,k)
-            tmp_o(2) = exc_exc_overlap(n,iq,3) ! overlap (i,j,k),(i,j+1,k)
-            tmp_o(3) = exc_exc_overlap(n,iq,5) ! overlap (i,j,k),(i,j,k+1)
+!           iq_d1 = q_neigh(n,dir1); iq_d2 = q_neigh(n,dir2)
+            ! not needed anymore but keeping it because tmp_o is shorter
+            tmp_o(1) = exc_exc_overlap(n,iq,q_neigh(iq,1)) ! overlap <(i,j,k)|(i+1,j,k)>
+            tmp_o(2) = exc_exc_overlap(n,iq,q_neigh(iq,2)) ! overlap <(i,j,k)|(i,j+1,k)>
+            tmp_o(3) = exc_exc_overlap(n,iq,q_neigh(iq,3)) ! overlap <(i,j,k)|(i,j,k+1)>
             
             rot_overlap = czero
             do id1 = 1, 3
               do id2 = 1, 3 
-                do id3 = 1, 3
-                  rot_overlap = rot_overlap + tmp_o(id1)*rlat(id1,id2)/ngrid(id1)*blat(id2,id3)*ngrid(id3)              
-                enddo
+                rot_overlap = rot_overlap + rlat(id2,id1)*dk_car(d1)*tmp_o(n,iq,id2)/dk_red(id2) !tmp_o(id1)*rlat(id1,id2)/ngrid(id1)*blat(id2,id3)*ngrid(id3)              
               enddo
             enddo
             ! boundary check
@@ -515,6 +520,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
         enddo !iq
       enddo !n
     enddo !ic 
+
 chern_exc_exc = 1.0/ngkpt * chern_exc_exc ! volume factor
 print*, 'exc-exc cycle ended', chern_exc_exc
 
