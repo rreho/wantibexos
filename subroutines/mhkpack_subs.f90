@@ -525,7 +525,7 @@ subroutine find_neighbour(nkpt,kgrid,neighbours)
   integer, intent(in)    :: nkpt(1:3)
   integer, intent(inout) :: neighbours(nkpt(1)*nkpt(2)*nkpt(3),6)
   integer :: i, j, k, n, m, counter, ijk(nkpt(1)*nkpt(2)*nkpt(3),3)
-  double precision, intent(in) :: dlat(3,3), kgrid(nkpt(1)*nkpt(2)*nkpt(3),3)
+  double precision, intent(in) :: kgrid(nkpt(1)*nkpt(2)*nkpt(3),3)
   double precision :: f(3)
 
   ! 1st: obtain the (i,j,k) points of the points on the list

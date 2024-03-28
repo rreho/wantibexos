@@ -471,7 +471,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
     call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
  
     ! get the reduced lattice differential dk_red
-    dk_red(1:3) = 1.0/nkpt(1:3)
+    dk_red(1:3) = 1.0/ngrid(1:3)
  
     ! get the cartesian lattice differential dk_car
     dk_car = matmul(blat,dk_red)
@@ -496,7 +496,7 @@ subroutine bsebnds(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
             rot_overlap = czero
             do id1 = 1, 3
               do id2 = 1, 3 
-                rot_overlap = rot_overlap + rlat(id2,id1)*dk_car(d1)*tmp_o(n,iq,id2)/dk_red(id2) !tmp_o(id1)*rlat(id1,id2)/ngrid(id1)*blat(id2,id3)*ngrid(id3)              
+                rot_overlap = rot_overlap + rlat(id2,id1)*dk_car(id1)*tmp_o(id2)/dk_red(id2) !tmp_o(id1)*rlat(id1,id2)/ngrid(id1)*blat(id2,id3)*ngrid(id3)              
               enddo
             enddo
             ! boundary check
@@ -563,8 +563,8 @@ kmq_index = 0.0
 !                     A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,kmq_neighbours(ik,iq,dir2))
                     do dir1 = 1, 3
                       do dir2 = 1,3
-                        chern_exc_hole(n,id) = chern_exc_hole(n,id) + A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,q_neigh(i_kmq,dir2))*rlat(id2,id1)*dk_car(d1)/dk_red(id2) - &
-                                               A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,i_kmq)*rlat(id2,id1)*dk_car(d1)/dk_red(id2)
+                        chern_exc_hole(n,id) = chern_exc_hole(n,id) + A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,q_neigh(i_kmq,dir2))*rlat(id2,id1)*dk_car(id1)/dk_red(id2) - &
+                                               A_table(n,ic,iv1,ik,iq)*conjg(A_table(n,ic,iv2,ik,iq))*overlaps_mmn(iv1,iv2,i_kmq,i_kmq)*rlat(id2,id1)*dk_car(id1)/dk_red(id2)
                       enddo
                     enddo
                   enddo !ik 
@@ -627,8 +627,8 @@ print*, 'computing overlaps'
 !                   else
                     do dir1 = 1, 3
                       do dir2 = 1, 3
-                        chern_exc_electron(n,id) = chern_exc_electron(n,id) + A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,q_neigh(ik,iq,dir2))*rlat(id2,id1)*dk_car(d1)/dk_red(id2) - &
-                                                   A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,i_kmq)*rlat(id2,id1)*dk_car(d1)/dk_red(id2)
+                        chern_exc_electron(n,id) = chern_exc_electron(n,id) + A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,q_neigh(i_kmq,dir2))*rlat(id2,id1)*dk_car(id1)/dk_red(id2) - &
+                                                   A_table(n,ic1,iv,ik,iq)*conjg(A_table(n,ic2,iv,ik,iq))*overlaps_mmn(ic1,ic2,i_kmq,i_kmq)*rlat(id2,id1)*dk_car(id1)/dk_red(id2)
                       enddo
                     enddo
 !                   endif
