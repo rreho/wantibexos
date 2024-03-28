@@ -87,292 +87,292 @@ end subroutine r_sort
 
 subroutine rkmesh(rk,rlat,ngrid)
 
-	implicit none
-	
-	integer,dimension(3) :: ngrid
-	double precision :: rk
-	double precision,dimension(3,3) :: rlat,blat
-	double precision,dimension(3) :: vsize
-	double precision,parameter :: pi=acos(-1.0)
+  implicit none
+  
+  integer,dimension(3) :: ngrid
+  double precision :: rk
+  double precision,dimension(3,3) :: rlat,blat
+  double precision,dimension(3) :: vsize
+  double precision,parameter :: pi=acos(-1.0)
 
-	call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
+  call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
 
-	call vecsize(blat(1,:),vsize(1))
-	call vecsize(blat(2,:),vsize(2))
-	call vecsize(blat(3,:),vsize(3))
+  call vecsize(blat(1,:),vsize(1))
+  call vecsize(blat(2,:),vsize(2))
+  call vecsize(blat(3,:),vsize(3))
 
-	vsize = vsize/(2*pi)
+  vsize = vsize/(2*pi)
 
-	ngrid(1) = int(max(1.0,(rk*vsize(1))+0.5))
-	ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
-	ngrid(3) = int(max(1.0,(rk*vsize(3))+0.5))
+  ngrid(1) = int(max(1.0,(rk*vsize(1))+0.5))
+  ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
+  ngrid(3) = int(max(1.0,(rk*vsize(3))+0.5))
 
 end subroutine rkmesh
 
 subroutine rkmesh2D(rk,rlat,ngrid)
 
-	implicit none
-	
-	integer,dimension(3) :: ngrid
-	double precision :: rk
-	double precision,dimension(3,3) :: rlat,blat
-	double precision,dimension(3) :: vsize
-	double precision,parameter :: pi=acos(-1.0)
+  implicit none
+  
+  integer,dimension(3) :: ngrid
+  double precision :: rk
+  double precision,dimension(3,3) :: rlat,blat
+  double precision,dimension(3) :: vsize
+  double precision,parameter :: pi=acos(-1.0)
 
-	call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
+  call recvec(rlat(1,:),rlat(2,:),rlat(3,:),blat(1,:),blat(2,:),blat(3,:))
 
-	call vecsize(blat(1,:),vsize(1))
-	call vecsize(blat(2,:),vsize(2))
-	call vecsize(blat(3,:),vsize(3))
+  call vecsize(blat(1,:),vsize(1))
+  call vecsize(blat(2,:),vsize(2))
+  call vecsize(blat(3,:),vsize(3))
 
-	vsize = vsize/(2*pi)
+  vsize = vsize/(2*pi)
 
-	ngrid(1) = int(max(1.0,(rk*vsize(1))+0.5))
-	ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
-	ngrid(3) = 1
+  ngrid(1) = int(max(1.0,(rk*vsize(1))+0.5))
+  ngrid(2) = int(max(1.0,(rk*vsize(2))+0.5))
+  ngrid(3) = 1
 
 end subroutine rkmesh2D
 
 subroutine kpath2(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 
-	implicit none
+  implicit none
 
-	character(len=70) :: outputfolder    !pasta saida
-	integer :: i,j,erro
-	integer :: nks,npts
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(3) :: blat1,blat2,blat3
+  character(len=70) :: outputfolder    !pasta saida
+  integer :: i,j,erro
+  integer :: nks,npts
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	double precision,dimension((nks/2)*npts,4) :: kpt
+  double precision,dimension((nks/2)*npts,4) :: kpt
 
-	double precision,dimension(nks,3) :: ks
-	double precision,dimension(nks,3) :: ksaux
+  double precision,dimension(nks,3) :: ks
+  double precision,dimension(nks,3) :: ksaux
 
-	double precision,dimension(nks/2) :: kdis !distancia entre os pontos k do caminho
-	double precision :: kdistot !soma do caminho todo
-	double precision :: kdisaux
+  double precision,dimension(nks/2) :: kdis !distancia entre os pontos k do caminho
+  double precision :: kdistot !soma do caminho todo
+  double precision :: kdisaux
 
-	OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS.dat',STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening KLABELS output file"
+  OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS.dat',STATUS='unknown', IOSTAT=erro)
+      if (erro/=0) stop "Error opening KLABELS output file"
 
-	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
-	do i=1,nks
-	
-		ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
-		ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
-		ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
-	
-	end do
+  do i=1,nks
+  
+    ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
+    ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
+    ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
+  
+  end do
 
-	kdistot= 0.0
-	do i=1,nks/2
+  kdistot= 0.0
+  do i=1,nks/2
 
-		call distvec(ksaux(2*i,:),ksaux(2*i-1,:),kdis(i))
+    call distvec(ksaux(2*i,:),ksaux(2*i-1,:),kdis(i))
 
-		!kdis(i)=sqrt((ksaux(2*i,1)-ksaux(2*i-1,1))**2+(ksaux(2*i,2)-ksaux(2*i-1,2))**2+(ksaux(2*i,3)-ksaux(2*i-1,3))**2)
-		kdistot=kdistot+kdis(i)
+    !kdis(i)=sqrt((ksaux(2*i,1)-ksaux(2*i-1,1))**2+(ksaux(2*i,2)-ksaux(2*i-1,2))**2+(ksaux(2*i,3)-ksaux(2*i-1,3))**2)
+    kdistot=kdistot+kdis(i)
 
-	end do
+  end do
 
-	kdis=kdis/kdistot
+  kdis=kdis/kdistot
 
-	kdisaux=0.0
-	write(1733,*) real(kdisaux)
+  kdisaux=0.0
+  write(1733,*) real(kdisaux)
 
-	 do j=1,nks/2
-		
-	  do i=1,npts
+   do j=1,nks/2
+    
+    do i=1,npts
 
-		!kpt((j-1)*npts+i) = (kdisaux)+(kdis(j))*dble((i)/(npts))
-		kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,2) = ksaux(2*j-1,1)+ (ksaux(2*j,1)-ksaux(2*j-1,1))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,3) = ksaux(2*j-1,2)+ (ksaux(2*j,2)-ksaux(2*j-1,2))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,4) = ksaux(2*j-1,3)+ (ksaux(2*j,3)-ksaux(2*j-1,3))*(i-1.)/(npts-1.)	
-		
-		!write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)
-		
+    !kpt((j-1)*npts+i) = (kdisaux)+(kdis(j))*dble((i)/(npts))
+    kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,2) = ksaux(2*j-1,1)+ (ksaux(2*j,1)-ksaux(2*j-1,1))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,3) = ksaux(2*j-1,2)+ (ksaux(2*j,2)-ksaux(2*j-1,2))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,4) = ksaux(2*j-1,3)+ (ksaux(2*j,3)-ksaux(2*j-1,3))*(i-1.)/(npts-1.)  
+    
+    !write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)
+    
 
-	  end do
+    end do
 
-		kdisaux=kdisaux+kdis(j)
-		write(1733,*) real(kdisaux)
-	 end do
+    kdisaux=kdisaux+kdis(j)
+    write(1733,*) real(kdisaux)
+   end do
 
 
-	close(1733)
+  close(1733)
 
 
 end subroutine kpath2
 
 subroutine kpathbse(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 
-	implicit none
+  implicit none
 
-	character(len=70) :: outputfolder    !pasta saida
-	integer :: i,j,erro
-	integer :: nks,npts
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(3) :: blat1,blat2,blat3
+  character(len=70) :: outputfolder    !pasta saida
+  integer :: i,j,erro
+  integer :: nks,npts
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	double precision,dimension((nks/2)*npts,4) :: kpt
+  double precision,dimension((nks/2)*npts,4) :: kpt
 
-	double precision,dimension(nks,3) :: ks
-	double precision,dimension(nks,3) :: ksaux
+  double precision,dimension(nks,3) :: ks
+  double precision,dimension(nks,3) :: ksaux
 
-	double precision,dimension(nks/2) :: kdis !distancia entre os pontos k do caminho
-	double precision :: kdistot !soma do caminho todo
-	double precision :: kdisaux
-
-
-	
-	OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS-BSE.dat',STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening KLABELS-BSE output file"
+  double precision,dimension(nks/2) :: kdis !distancia entre os pontos k do caminho
+  double precision :: kdistot !soma do caminho todo
+  double precision :: kdisaux
 
 
-	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
-
-	do i=1,nks
-	
-		ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
-		ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
-		ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
-	
-	end do
+  
+  OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS-BSE.dat',STATUS='unknown', IOSTAT=erro)
+      if (erro/=0) stop "Error opening KLABELS-BSE output file"
 
 
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
-	kdistot= 0.0
-	do i=1,nks/2
-
-		call distvec(ksaux(2*i,:),ksaux(2*i-1,:),kdis(i))
-
-		!kdis(i)=sqrt((ksaux(2*i,1)-ksaux(2*i-1,1))**2+(ksaux(2*i,2)-ksaux(2*i-1,2))**2+(ksaux(2*i,3)-ksaux(2*i-1,3))**2)
-		kdistot=kdistot+kdis(i)
-
-	end do
-
-	kdis=kdis/kdistot
+  do i=1,nks
+  
+    ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
+    ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
+    ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
+  
+  end do
 
 
-	kdisaux=0.0
-	write(1733,*) real(kdisaux)
 
-	 do j=1,nks/2
-		
-	  do i=1,npts
+  kdistot= 0.0
+  do i=1,nks/2
 
-		!kpt((j-1)*npts+i) = (kdisaux)+(kdis(j))*dble((i)/(npts))
-		kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,2) = ksaux(2*j-1,1)+ (ksaux(2*j,1)-ksaux(2*j-1,1))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,3) = ksaux(2*j-1,2)+ (ksaux(2*j,2)-ksaux(2*j-1,2))*(i-1.)/(npts-1.)
-		kpt((j-1)*npts+i,4) = ksaux(2*j-1,3)+ (ksaux(2*j,3)-ksaux(2*j-1,3))*(i-1.)/(npts-1.)	
-		
-		!write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)
-		
+    call distvec(ksaux(2*i,:),ksaux(2*i-1,:),kdis(i))
 
-	  end do
+    !kdis(i)=sqrt((ksaux(2*i,1)-ksaux(2*i-1,1))**2+(ksaux(2*i,2)-ksaux(2*i-1,2))**2+(ksaux(2*i,3)-ksaux(2*i-1,3))**2)
+    kdistot=kdistot+kdis(i)
 
-		kdisaux=kdisaux+kdis(j)
-		write(1733,*) real(kdisaux)
-	 end do
+  end do
+
+  kdis=kdis/kdistot
 
 
-	close(1733)
+  kdisaux=0.0
+  write(1733,*) real(kdisaux)
+
+   do j=1,nks/2
+    
+    do i=1,npts
+
+    !kpt((j-1)*npts+i) = (kdisaux)+(kdis(j))*dble((i)/(npts))
+    kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,2) = ksaux(2*j-1,1)+ (ksaux(2*j,1)-ksaux(2*j-1,1))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,3) = ksaux(2*j-1,2)+ (ksaux(2*j,2)-ksaux(2*j-1,2))*(i-1.)/(npts-1.)
+    kpt((j-1)*npts+i,4) = ksaux(2*j-1,3)+ (ksaux(2*j,3)-ksaux(2*j-1,3))*(i-1.)/(npts-1.)  
+    
+    !write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)
+    
+
+    end do
+
+    kdisaux=kdisaux+kdis(j)
+    write(1733,*) real(kdisaux)
+   end do
+
+
+  close(1733)
 
 
 end subroutine kpathbse
 
 subroutine kpath(outputfolder,rlat1,rlat2,rlat3,nks,ks,npts,kpt)
 
-	implicit none
+  implicit none
 
-	character(len=70) :: outputfolder    !pasta saida
-	integer :: i,j,erro
-	integer :: nks,npts
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(3) :: blat1,blat2,blat3
+  character(len=70) :: outputfolder    !pasta saida
+  integer :: i,j,erro
+  integer :: nks,npts
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	double precision,dimension((nks-1)*npts,4) :: kpt
+  double precision,dimension((nks-1)*npts,4) :: kpt
 
-	double precision,dimension(nks,3) :: ks
-	double precision,dimension(nks,3) :: ksaux
+  double precision,dimension(nks,3) :: ks
+  double precision,dimension(nks,3) :: ksaux
 
-	double precision,dimension(nks-1) :: kdis !distancia entre os pontos k do caminho
-	double precision :: kdistot !soma do caminho todo
-	double precision :: kdisaux
+  double precision,dimension(nks-1) :: kdis !distancia entre os pontos k do caminho
+  double precision :: kdistot !soma do caminho todo
+  double precision :: kdisaux
 
-	OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS-BSE.dat',STATUS='unknown', IOSTAT=erro)
-    	if (erro/=0) stop "Error opening KLABELS-BSE output file"
+  OPEN(UNIT=1733, FILE=trim(outputfolder)//'KLABELS-BSE.dat',STATUS='unknown', IOSTAT=erro)
+      if (erro/=0) stop "Error opening KLABELS-BSE output file"
 
-	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
-	do i=1,nks
-	
-		ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
-		ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
-		ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
-	
-	end do
-
-
-	kdistot= 0.0
-	do i=1,nks-1
-
-		call distvec(ksaux(i,:),ksaux(i+1,:),kdis(i))
-		kdistot=kdistot+kdis(i)
-	end do
-
-	kdis=kdis/kdistot
+  do i=1,nks
+  
+    ksaux(i,1) = ks(i,1)*blat1(1)+ks(i,2)*blat2(1)+ks(i,3)*blat3(1)
+    ksaux(i,2) = ks(i,1)*blat1(2)+ks(i,2)*blat2(2)+ks(i,3)*blat3(2)
+    ksaux(i,3) = ks(i,1)*blat1(3)+ks(i,2)*blat2(3)+ks(i,3)*blat3(3)
+  
+  end do
 
 
-	do i=1,npts
+  kdistot= 0.0
+  do i=1,nks-1
 
-		kpt(i,1) = (kdis(1))*(i-1.)/(npts-1.)
-		kpt(i,2) = ksaux(1,1)+ (ksaux(2,1)-ksaux(1,1))*(i-1.)/(npts-1.)
-		kpt(i,3) = ksaux(1,2)+ (ksaux(2,2)-ksaux(1,2))*(i-1.)/(npts-1.)
-		kpt(i,4) = ksaux(1,3)+ (ksaux(2,3)-ksaux(1,3))*(i-1.)/(npts-1.)
+    call distvec(ksaux(i,:),ksaux(i+1,:),kdis(i))
+    kdistot=kdistot+kdis(i)
+  end do
 
-	end do
+  kdis=kdis/kdistot
 
-	if (nks .gt. 2) then
 
-	kdisaux=0.0
-	write(1733,*) real(kdisaux)
-	 do j=2,nks-1
-		kdisaux=kdisaux+kdis(j-1)
-		write(1733,*) real(kdisaux)
-	  do i=1,npts
+  do i=1,npts
 
-		kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i)/(npts)
-		kpt((j-1)*npts+i,2) = ksaux(j,1)+ (ksaux(j+1,1)-ksaux(j,1))*(i)/(npts)
-		kpt((j-1)*npts+i,3) = ksaux(j,2)+ (ksaux(j+1,2)-ksaux(j,2))*(i)/(npts)
-		kpt((j-1)*npts+i,4) = ksaux(j,3)+ (ksaux(j+1,3)-ksaux(j,3))*(i)/(npts)
-		
-		!write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)	
+    kpt(i,1) = (kdis(1))*(i-1.)/(npts-1.)
+    kpt(i,2) = ksaux(1,1)+ (ksaux(2,1)-ksaux(1,1))*(i-1.)/(npts-1.)
+    kpt(i,3) = ksaux(1,2)+ (ksaux(2,2)-ksaux(1,2))*(i-1.)/(npts-1.)
+    kpt(i,4) = ksaux(1,3)+ (ksaux(2,3)-ksaux(1,3))*(i-1.)/(npts-1.)
 
-	  end do
-	 end do
+  end do
 
-	else 
+  if (nks .gt. 2) then
 
-	write(1733,*) real(0.0000)
-	write(1733,*) real(1.0000)
-	 continue
+  kdisaux=0.0
+  write(1733,*) real(kdisaux)
+   do j=2,nks-1
+    kdisaux=kdisaux+kdis(j-1)
+    write(1733,*) real(kdisaux)
+    do i=1,npts
 
-	end if
+    kpt((j-1)*npts+i,1) = (kdisaux)+(kdis(j))*(i)/(npts)
+    kpt((j-1)*npts+i,2) = ksaux(j,1)+ (ksaux(j+1,1)-ksaux(j,1))*(i)/(npts)
+    kpt((j-1)*npts+i,3) = ksaux(j,2)+ (ksaux(j+1,2)-ksaux(j,2))*(i)/(npts)
+    kpt((j-1)*npts+i,4) = ksaux(j,3)+ (ksaux(j+1,3)-ksaux(j,3))*(i)/(npts)
+    
+    !write(1733,*) kpt((j-1)*npts+i,2),kpt((j-1)*npts+i,3),kpt((j-1)*npts+i,4)  
+
+    end do
+   end do
+
+  else 
+
+  write(1733,*) real(0.0000)
+  write(1733,*) real(1.0000)
+   continue
+
+  end if
 
 
 end subroutine kpath
 
 subroutine distvec(vec1,vec2,distvecout) !subroutina para calcular a distância entre dois vetores
 
-	implicit none
+  implicit none
 
-	double precision,dimension(3) :: vec1,vec2
-	double precision :: distvecout
+  double precision,dimension(3) :: vec1,vec2
+  double precision :: distvecout
 
-	distvecout=sqrt((vec1(1)-vec2(1))**2+(vec1(2)-vec2(2))**2+(vec1(3)-vec2(3))**2)
+  distvecout=sqrt((vec1(1)-vec2(1))**2+(vec1(2)-vec2(2))**2+(vec1(3)-vec2(3))**2)
 
 
 end subroutine distvec
@@ -380,115 +380,115 @@ end subroutine distvec
 
 subroutine monhkhorst_packq(q,n1,n2,n3,shift,rlat1,rlat2,rlat3,qpt)
 
-	implicit none
-	
-	integer :: n1,n2,n3
-	double precision,dimension(3) :: shift,kshift
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(n1*n2*n3,3) :: qpt
+  implicit none
+  
+  integer :: n1,n2,n3
+  double precision,dimension(3) :: shift,kshift
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(n1*n2*n3,3) :: qpt
 
-	double precision,dimension(4) :: q
+  double precision,dimension(4) :: q
 
-	integer :: i,j,k, counter
-	double precision,dimension(3) :: blat1,blat2,blat3
+  integer :: i,j,k, counter
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
-	kshift(1) = blat1(1)*shift(1)+blat2(1)*shift(2)+blat3(1)*shift(3) 
-	kshift(2) = blat1(2)*shift(1)+blat2(2)*shift(2)+blat3(2)*shift(3)
-	kshift(3) = blat1(3)*shift(1)+blat2(3)*shift(2)+blat3(3)*shift(3)
+  kshift(1) = blat1(1)*shift(1)+blat2(1)*shift(2)+blat3(1)*shift(3) 
+  kshift(2) = blat1(2)*shift(1)+blat2(2)*shift(2)+blat3(2)*shift(3)
+  kshift(3) = blat1(3)*shift(1)+blat2(3)*shift(2)+blat3(3)*shift(3)
 
-	counter = 1
+  counter = 1
 
-	do i=0,n1-1
-	 do j=0,n2-1
-	  do k=0,n3-1
+  do i=0,n1-1
+   do j=0,n2-1
+    do k=0,n3-1
 
-	    !qpt(counter,1) = q(2)+(blat1(1)/dble(n1))*(dble(i)+shift(1))+(blat2(1)/dble(n2))*(dble(j)+shift(2))&
-		!	     +(blat3(1)/dble(n3))*(dble(k)+shift(3))
+      !qpt(counter,1) = q(2)+(blat1(1)/dble(n1))*(dble(i)+shift(1))+(blat2(1)/dble(n2))*(dble(j)+shift(2))&
+    !       +(blat3(1)/dble(n3))*(dble(k)+shift(3))
 
-	    !qpt(counter,2) = q(3)+(blat1(2)/dble(n1))*(dble(i)+shift(1))+(blat2(2)/dble(n2))*(dble(j)+shift(2))&
-	!		     +(blat3(2)/dble(n3))*(dble(k)+shift(3))
+      !qpt(counter,2) = q(3)+(blat1(2)/dble(n1))*(dble(i)+shift(1))+(blat2(2)/dble(n2))*(dble(j)+shift(2))&
+  !         +(blat3(2)/dble(n3))*(dble(k)+shift(3))
 
-	    !qpt(counter,3) =q(4)+(blat1(3)/dble(n1))*(dble(i)+shift(1))+(blat2(3)/dble(n2))*(dble(j)+shift(2))&
-	!		     +(blat3(3)/dble(n3))*(dble(k)+shift(3))	
+      !qpt(counter,3) =q(4)+(blat1(3)/dble(n1))*(dble(i)+shift(1))+(blat2(3)/dble(n2))*(dble(j)+shift(2))&
+  !         +(blat3(3)/dble(n3))*(dble(k)+shift(3))  
 
 
-	    qpt(counter,1) = q(2)+(blat1(1)/dble(n1))*(dble(i))+(blat2(1)/dble(n2))*(dble(j))&
-			     +(blat3(1)/dble(n3))*(dble(k))+kshift(1)
+      qpt(counter,1) = q(2)+(blat1(1)/dble(n1))*(dble(i))+(blat2(1)/dble(n2))*(dble(j))&
+           +(blat3(1)/dble(n3))*(dble(k))+kshift(1)
 
-	    qpt(counter,2) = q(3)+(blat1(2)/dble(n1))*(dble(i))+(blat2(2)/dble(n2))*(dble(j))&
-			     +(blat3(2)/dble(n3))*(dble(k))+kshift(2)
+      qpt(counter,2) = q(3)+(blat1(2)/dble(n1))*(dble(i))+(blat2(2)/dble(n2))*(dble(j))&
+           +(blat3(2)/dble(n3))*(dble(k))+kshift(2)
 
-	    qpt(counter,3) =q(4)+(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
-			     +(blat3(3)/dble(n3))*(dble(k))+kshift(3)	
+      qpt(counter,3) =q(4)+(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
+           +(blat3(3)/dble(n3))*(dble(k))+kshift(3)  
    
-	    counter = counter+1
+      counter = counter+1
 
-	  end do
-	 end do
-	end do
+    end do
+   end do
+  end do
 
 end subroutine monhkhorst_packq
 
 
 subroutine monhkhorst_pack(n1,n2,n3,shift,rlat1,rlat2,rlat3,kpt)
 
-	implicit none
-	
-	integer :: n1,n2,n3
-	double precision,dimension(3) :: shift,kshift
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(n1*n2*n3,3) :: kpt
-	double precision,dimension(n1,n2,n3) :: kpt_table
-	integer :: i,j,k, counter
-	double precision,dimension(3) :: blat1,blat2,blat3
+  implicit none
+  
+  integer :: n1,n2,n3
+  double precision,dimension(3) :: shift,kshift
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(n1*n2*n3,3) :: kpt
+  double precision,dimension(n1,n2,n3) :: kpt_table
+  integer :: i,j,k, counter
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
+  call recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3)
 
-	counter = 1
+  counter = 1
 
-	kshift(1) = blat1(1)*shift(1)+blat2(1)*shift(2)+blat3(1)*shift(3) 
-	kshift(2) = blat1(2)*shift(1)+blat2(2)*shift(2)+blat3(2)*shift(3)
-	kshift(3) = blat1(3)*shift(1)+blat2(3)*shift(2)+blat3(3)*shift(3)
+  kshift(1) = blat1(1)*shift(1)+blat2(1)*shift(2)+blat3(1)*shift(3) 
+  kshift(2) = blat1(2)*shift(1)+blat2(2)*shift(2)+blat3(2)*shift(3)
+  kshift(3) = blat1(3)*shift(1)+blat2(3)*shift(2)+blat3(3)*shift(3)
 
-	do i=0,n1-1
-	 do j=0,n2-1
-	  do k=0,n3-1
+  do i=0,n1-1
+   do j=0,n2-1
+    do k=0,n3-1
 
-	    !kpt(counter,1) = (blat1(1)/dble(n1))*(dble(i)+shift(1))+(blat2(1)/dble(n2))*(dble(j)+shift(2))&
-		!	     +(blat3(1)/dble(n3))*(dble(k)+shift(3))
+      !kpt(counter,1) = (blat1(1)/dble(n1))*(dble(i)+shift(1))+(blat2(1)/dble(n2))*(dble(j)+shift(2))&
+    !       +(blat3(1)/dble(n3))*(dble(k)+shift(3))
 
-	    !kpt(counter,2) = (blat1(2)/dble(n1))*(dble(i)+shift(1))+(blat2(2)/dble(n2))*(dble(j)+shift(2))&
-		!	     +(blat3(2)/dble(n3))*(dble(k)+shift(3))
+      !kpt(counter,2) = (blat1(2)/dble(n1))*(dble(i)+shift(1))+(blat2(2)/dble(n2))*(dble(j)+shift(2))&
+    !       +(blat3(2)/dble(n3))*(dble(k)+shift(3))
 
-	    !kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i)+shift(1))+(blat2(3)/dble(n2))*(dble(j)+shift(2))&
-		!	     +(blat3(3)/dble(n3))*(dble(k)+shift(3))	
+      !kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i)+shift(1))+(blat2(3)/dble(n2))*(dble(j)+shift(2))&
+    !       +(blat3(3)/dble(n3))*(dble(k)+shift(3))  
 
-	    kpt(counter,1) = (blat1(1)/dble(n1))*(dble(i))+(blat2(1)/dble(n2))*(dble(j))&
-			     +(blat3(1)/dble(n3))*(dble(k))+kshift(1)
+      kpt(counter,1) = (blat1(1)/dble(n1))*(dble(i))+(blat2(1)/dble(n2))*(dble(j))&
+           +(blat3(1)/dble(n3))*(dble(k))+kshift(1)
 
-	    kpt(counter,2) = (blat1(2)/dble(n1))*(dble(i))+(blat2(2)/dble(n2))*(dble(j))&
-			     +(blat3(2)/dble(n3))*(dble(k))+kshift(2)
+      kpt(counter,2) = (blat1(2)/dble(n1))*(dble(i))+(blat2(2)/dble(n2))*(dble(j))&
+           +(blat3(2)/dble(n3))*(dble(k))+kshift(2)
 
-	    kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
-			     +(blat3(3)/dble(n3))*(dble(k))+kshift(3)	
+      kpt(counter,3) =(blat1(3)/dble(n1))*(dble(i))+(blat2(3)/dble(n2))*(dble(j))&
+           +(blat3(3)/dble(n3))*(dble(k))+kshift(3)  
 
-	    counter = counter+1
+      counter = counter+1
 
-	  end do
-	 end do
-	end do
+    end do
+   end do
+  end do
 
 end subroutine monhkhorst_pack
 
 
-subroutine get_ijk(kpoint,ijk,nkpt,rlat)
+subroutine get_ijk(kpoint,ijk,nkpt)
   implicit none
 
   integer, intent(in) :: nkpt(3)
   integer, intent(out) :: ijk(nkpt(1)*nkpt(2)*nkpt(3),3)
-  double precision, intent(in) :: kpoint(nkpt(1)*nkpt(2)*nkpt(3),3), rlat(3,3)
+  double precision, intent(in) :: kpoint(nkpt(1)*nkpt(2)*nkpt(3),3)
   
   integer :: id,n
 
@@ -500,7 +500,87 @@ subroutine get_ijk(kpoint,ijk,nkpt,rlat)
 
 end subroutine get_ijk
 
-subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid is the original kgrid in reduced coordinate
+! updates a given list to have all next neighbours of a k- or q-point of index n
+! n is equivalent to the counter variable of monhkhorst_pack
+! each k- or q-point is defined by
+! q_cartesian = b_{1x}  b_{2x}  b_{3x}  * f_x
+!               b_{1y}  b_{2y}  b_{3y}    f_y
+!               b_{1z}  b_{2z}  b_{3z}    f_z
+! q_reduced = f_x = i/NGX
+!             f_y   j/NGY
+!             f_z   k/NGZ
+! where i,j,k also follow what is done in monhkhorst_pack
+! the next neighbours of a point q_reduced are then given by, e.g.
+! q_reduced = f_x = (i+1)/NGX
+!             f_y       j/NGY
+!             f_z       k/NGZ
+! for the next neighbour in reduced coordinates along the 1st axis
+! from monhkhorst_pack one can derive that counter(i,j,k) = 1 + k + NGZ*j + NGZ*NGY*i
+! so, if we know the (i,j,k) of q_reduced, the neighbours are
+! counter(i+1,j,k) = 1 + k + NGZ*j + NGZ*NGY*(i+1)
+! and so on
+! these can then be brought back to cartesian coordinates using the relation above for q_cartesian(f_x,f_y,f_z)
+subroutine find_neighbour(nkpt,kgrid,neighbours)
+  implicit none
+  integer, intent(in)    :: nkpt(1:3)
+  integer, intent(inout) :: neighbours(nkpt(1)*nkpt(2)*nkpt(3),6)
+  integer :: i, j, k, n, m, counter, ijk(nkpt(1)*nkpt(2)*nkpt(3),3)
+  double precision, intent(in) :: dlat(3,3), kgrid(nkpt(1)*nkpt(2)*nkpt(3),3)
+  double precision :: f(3)
+
+  ! 1st: obtain the (i,j,k) points of the points on the list
+! not needed since we loop over i,j,k anyway
+!  call get_ijk(kgrid,ijk,nkpt(1)*nkpt(2)*nkpt(3))
+  
+  ! 2nd: use the obtained (i,j,k) to compute the index "counter" for each point
+  do i = 0, nkpt(1) - 1
+    do j = 0, nkpt(2) - 1
+      do k = 0, nkpt(3) - 1
+        counter = 1 + k + nkpt(3)*j + nkpt(3)*nkpt(2)*i
+        neighbours(counter,4) = 1 + k   + nkpt(3)*j     + nkpt(3)*nkpt(2)*(i-1)
+        neighbours(counter,4) = 1 + k   + nkpt(3)*(j-1) + nkpt(3)*nkpt(2)*i
+        neighbours(counter,4) = 1 + k-1 + nkpt(3)*j     + nkpt(3)*nkpt(2)*i
+        
+        ! 3rd: correct for the case when the next neighbour lies outside the region defined by i = {0,...,NGX-1}, etc
+        ! forward neighbours
+        if (i+1 < nkpt(1)) then
+          neighbours(counter,1) = 1 + k   + nkpt(3)*j     + nkpt(3)*nkpt(2)*(i+1)
+        else
+          neighbours(counter,1) = 1 + k   + nkpt(3)*j     + nkpt(3)*nkpt(2)*(i+1 - nkpt(1))
+        endif
+        if (j+1 < nkpt(2)) then
+          neighbours(counter,2) = 1 + k   + nkpt(3)*(j+1) + nkpt(3)*nkpt(2)*i
+        else
+          neighbours(counter,2) = 1 + k   + nkpt(3)*(j+1 - nkpt(2)) + nkpt(3)*nkpt(2)*i
+        endif
+        if (k+1 < nkpt(3)) then
+          neighbours(counter,3) = 1 + k+1 + nkpt(3)*j     + nkpt(3)*nkpt(2)*i
+        else
+          neighbours(counter,3) = 1 + k+1 - nkpt(3) + nkpt(3)*j     + nkpt(3)*nkpt(2)*i
+        endif
+        ! backward neighbours
+        if (i-1 .ge. 0) then
+          neighbours(counter,4) = 1 + k   + nkpt(3)*j     + nkpt(3)*nkpt(2)*(i-1)
+        else
+          neighbours(counter,4) = 1 + k   + nkpt(3)*j     + nkpt(3)*nkpt(2)*(nkpt(1)-1)
+        endif
+        if (j-1 .ge. 0) then
+          neighbours(counter,5) = 1 + k   + nkpt(3)*(j-1) + nkpt(3)*nkpt(2)*i
+        else
+          neighbours(counter,5) = 1 + k   + nkpt(3)*(nkpt(2)-1) + nkpt(3)*nkpt(2)*i
+        endif
+        if (k-1 .ge. 0) then
+          neighbours(counter,6) = 1 + k-1 + nkpt(3)*j     + nkpt(3)*nkpt(2)*i
+        else
+          neighbours(counter,6) = 1 + nkpt(3)-1 + nkpt(3)*j     + nkpt(3)*nkpt(2)*i
+        endif
+      enddo !k
+    enddo !j
+  enddo !i
+
+end subroutine find_neighbour
+
+subroutine find_neighbour_old(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid is the original kgrid in reduced coordinate
   implicit none
   integer, intent(in) :: nkpt(3)
   double precision, intent(in) :: dlat(3,3), kpt(nkpt(1)*nkpt(2)*nkpt(3),3), kgrid(nkpt(1)*nkpt(2)*nkpt(3),3)
@@ -535,10 +615,10 @@ subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid 
   ! Shift all points with coordinates that are outside the cube ]-0.5,0.5]^3 to inside the cube by adding or subtracting 1
   do ik = 1, nmax
     do id  = 1, 3
-		if (k_red(ik,id) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
-			k_red(ik,id) = k_red(ik,id) + 1.
-		elseif (k_red(ik,id) .ge. 1.0-tol) then ! PM: same
-			k_red(ik,id) = k_red(ik,id) - 1.
+    if (k_red(ik,id) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+      k_red(ik,id) = k_red(ik,id) + 1.
+    elseif (k_red(ik,id) .ge. 1.0-tol) then ! PM: same
+      k_red(ik,id) = k_red(ik,id) - 1.
       endif
     enddo
   enddo
@@ -584,34 +664,34 @@ subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid 
 ! total_flux =0.00
 ! all_phases =0.00
   do ik = 1,nmax
-	k_plus_dx(1:3) = k_red(ik,1:3)+(/dk_red(1),0.0d0,0.0d0/)
-	k_minus_dx(1:3) = k_red(ik,1:3)+(/-dk_red(1),0.0d0,0.0d0/)
-	k_plus_dy = k_red(ik,1:3)+(/0.0d0,dk_red(2),0.0d0/)
-	k_minus_dy = k_red(ik,1:3)+(/0.0d0,-dk_red(2),0.0d0/)
-	k_plus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,dk_red(3)/)
-	k_minus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,-dk_red(3)/)		
-	if (k_minus_dx(1) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
-		k_minus_dx(1) = k_minus_dx(1) + 1.
-	elseif (k_plus_dx(1) .ge. 1.0-tol) then ! PM: same
-		k_plus_dx(1) = k_plus_dx(1) - 1.
-	endif
-	if (k_minus_dy(2) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
-		k_minus_dy(2) = k_minus_dy(2) + 1.
-	elseif (k_plus_dy(2) .ge. 1.0-tol) then ! PM: same
-		k_plus_dy(2) = k_plus_dy(2) - 1.		
-	endif
-	if (k_minus_dz(3) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
-		k_minus_dz(3) = k_minus_dz(3) + 1.
-	elseif (k_plus_dz(3) .ge. 1.0-tol) then ! PM: same
-		k_plus_dz(3) = k_plus_dz(3) - 1.
-	endif
+  k_plus_dx(1:3) = k_red(ik,1:3)+(/dk_red(1),0.0d0,0.0d0/)
+  k_minus_dx(1:3) = k_red(ik,1:3)+(/-dk_red(1),0.0d0,0.0d0/)
+  k_plus_dy = k_red(ik,1:3)+(/0.0d0,dk_red(2),0.0d0/)
+  k_minus_dy = k_red(ik,1:3)+(/0.0d0,-dk_red(2),0.0d0/)
+  k_plus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,dk_red(3)/)
+  k_minus_dz = k_red(ik,1:3)+(/0.0d0,0.0d0,-dk_red(3)/)    
+  if (k_minus_dx(1) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+    k_minus_dx(1) = k_minus_dx(1) + 1.
+  elseif (k_plus_dx(1) .ge. 1.0-tol) then ! PM: same
+    k_plus_dx(1) = k_plus_dx(1) - 1.
+  endif
+  if (k_minus_dy(2) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+    k_minus_dy(2) = k_minus_dy(2) + 1.
+  elseif (k_plus_dy(2) .ge. 1.0-tol) then ! PM: same
+    k_plus_dy(2) = k_plus_dy(2) - 1.    
+  endif
+  if (k_minus_dz(3) .lt. 0.0-tol) then ! PM: what is this 1-0.0001 RR: has to be +
+    k_minus_dz(3) = k_minus_dz(3) + 1.
+  elseif (k_plus_dz(3) .ge. 1.0-tol) then ! PM: same
+    k_plus_dz(3) = k_plus_dz(3) - 1.
+  endif
 
-	neighbours(n,1,1) = find_kpoint_index(kgrid, nmax, k_plus_dx(1:3)) ! neighbour in +dx
-	neighbours(n,2,1) = find_kpoint_index(kgrid, nmax, k_minus_dx(1:3))  ! neighbour in -dx
-	neighbours(n,3,1) = find_kpoint_index(kgrid, nmax, k_plus_dy(1:3))      ! neighbour in +dy
-	neighbours(n,4,1) = find_kpoint_index(kgrid, nmax, k_minus_dy(1:3))     ! neighbour in -dx
-	neighbours(n,5,1) = find_kpoint_index(kgrid, nmax, k_plus_dz(1:3))       ! neighbour in +dz
-	neighbours(n,6,1) = find_kpoint_index(kgrid, nmax, k_minus_dz(1:3))      ! neighbour in -dx	
+  neighbours(n,1,1) = find_kpoint_index(kgrid, nmax, k_plus_dx(1:3)) ! neighbour in +dx
+  neighbours(n,2,1) = find_kpoint_index(kgrid, nmax, k_minus_dx(1:3))  ! neighbour in -dx
+  neighbours(n,3,1) = find_kpoint_index(kgrid, nmax, k_plus_dy(1:3))      ! neighbour in +dy
+  neighbours(n,4,1) = find_kpoint_index(kgrid, nmax, k_minus_dy(1:3))     ! neighbour in -dx
+  neighbours(n,5,1) = find_kpoint_index(kgrid, nmax, k_plus_dz(1:3))       ! neighbour in +dz
+  neighbours(n,6,1) = find_kpoint_index(kgrid, nmax, k_minus_dz(1:3))      ! neighbour in -dx  
   end do
 
   do k = 1, nkpt(3) 
@@ -631,7 +711,7 @@ subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid 
         ! neighbours(n,3,1) = 1 + k     + nkpt(3)*(j+dj) + nkpt(3)*nkpt(2)*i      ! neighbour in +dy
         ! neighbours(n,4,1) = 1 + k     + nkpt(3)*(j-dj) + nkpt(3)*nkpt(2)*i      ! neighbour in -dx
         ! neighbours(n,5,1) = 1 + k + 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in +dz
-        ! neighbours(n,6,1) = 1 + k - 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in -dx		
+        ! neighbours(n,6,1) = 1 + k - 1 + nkpt(3)*j      + nkpt(3)*nkpt(2)*i      ! neighbour in -dx    
         ! neighbours(n,1,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i+di) ! neighbour in +dx
         ! neighbours(n,2,1) = 1 + k     + nkpt(3)*j      + nkpt(3)*nkpt(2)*(i-di) ! neighbour in -dx
         ! neighbours(n,3,1) = 1 + k     + nkpt(3)*(j+dj) + nkpt(3)*nkpt(2)*i      ! neighbour in +dy
@@ -676,30 +756,30 @@ subroutine find_neighbour(nkpt,dlat,kpt,kgrid, neighbours,dk_red,dk_car) !kgrid 
 !   enddo
 
 
-end subroutine find_neighbour
+end subroutine find_neighbour_old
 
 
 subroutine recvec(rlat1,rlat2,rlat3,blat1,blat2,blat3) !calcula os vetores da rede recíproca, a partir dos vetores da rede real
 
-	implicit none
-	
-	double precision,parameter :: pi=acos(-1.)
-	
-	double precision,dimension(3) :: rlat1,rlat2,rlat3
-	double precision,dimension(3) :: blat1,blat2,blat3
+  implicit none
+  
+  double precision,parameter :: pi=acos(-1.)
+  
+  double precision,dimension(3) :: rlat1,rlat2,rlat3
+  double precision,dimension(3) :: blat1,blat2,blat3
 
-	double precision,dimension(3) :: v23,v31,v12
-	double precision :: vol
+  double precision,dimension(3) :: v23,v31,v12
+  double precision :: vol
 
-	call prodvec(rlat2,rlat3,v23)
-	call prodvec(rlat3,rlat1,v31)
-	call prodvec(rlat1,rlat2,v12)
+  call prodvec(rlat2,rlat3,v23)
+  call prodvec(rlat3,rlat1,v31)
+  call prodvec(rlat1,rlat2,v12)
 
-	vol= abs((rlat1(1)*v23(1))+(rlat1(2)*v23(2))+(rlat1(3)*v23(3)))
+  vol= abs((rlat1(1)*v23(1))+(rlat1(2)*v23(2))+(rlat1(3)*v23(3)))
 
-	blat1 = ((2.0*pi)/vol)*v23
-	blat2 = ((2.0*pi)/vol)*v31
-	blat3 = ((2.0*pi)/vol)*v12
+  blat1 = ((2.0*pi)/vol)*v23
+  blat2 = ((2.0*pi)/vol)*v31
+  blat3 = ((2.0*pi)/vol)*v12
 
 
 end subroutine recvec
@@ -711,51 +791,51 @@ end subroutine recvec
 subroutine gridgenhexcount(ngrid,a,counter)
 
 
-	implicit none
+  implicit none
 
-	double precision,parameter :: pi=acos(-1.)
+  double precision,parameter :: pi=acos(-1.)
 
-	integer :: ngrid,i,j
+  integer :: ngrid,i,j
 
-	integer :: counter
+  integer :: counter
 
-	double precision :: a!constante da rede
+  double precision :: a!constante da rede
 
-	double precision :: a0
+  double precision :: a0
 
         double precision :: xmax, ymax
 
-	double precision :: kx,ky
+  double precision :: kx,ky
 
 
-	a0 = a/sqrt(3.)
+  a0 = a/sqrt(3.)
 
         xmax=2*pi/(3.d0*a0)
         ymax=4*pi/(3.d0*a)
 
 
-	counter = 0
+  counter = 0
 
 
-	do i=1,ngrid
+  do i=1,ngrid
                 kx=xmax*(i-1)/(ngrid-1)
-		do j=1,ngrid
+    do j=1,ngrid
                          ky=ymax*(j-1)/(ngrid-1)
                          if (ky.lt.ymax/2.d0) then
                             counter=counter+1
                             if (i.ne.1.and.j.ne.1) counter=counter+1 
                             if (i.ne.1) counter=counter+1
-	                    if (j.ne.1) counter=counter+1
+                      if (j.ne.1) counter=counter+1
                           
                          else if (ky.lt.(ymax-kx*tan(pi/6.d0))) then
                             counter=counter+1
                             if (i.ne.1.and.j.ne.1) counter=counter+1 
                             if (i.ne.1) counter=counter+1
-	                    if (j.ne.1) counter=counter+1
+                      if (j.ne.1) counter=counter+1
                          end if
-		
-		end do
-	end do 
+    
+    end do
+  end do 
 
 
 end subroutine gridgenhexcount
@@ -764,35 +844,35 @@ end subroutine gridgenhexcount
 subroutine gridgenhex(ngrid,a,ncounter,kg)
 
 
-	implicit none
+  implicit none
 
-	double precision,parameter :: pi=acos(-1.)
+  double precision,parameter :: pi=acos(-1.)
 
-	integer :: ngrid,i,j
+  integer :: ngrid,i,j
 
-	integer :: counter,ncounter
+  integer :: counter,ncounter
 
-	double precision :: a!constante da rede
+  double precision :: a!constante da rede
 
-	double precision :: a0
+  double precision :: a0
 
         double precision :: xmax, ymax
 
-	double precision :: kx,ky
+  double precision :: kx,ky
 
-	double precision,dimension(ncounter,2) :: kg
+  double precision,dimension(ncounter,2) :: kg
 
 
-	a0 = a/sqrt(3.)
+  a0 = a/sqrt(3.)
 
         xmax=2*pi/(3.d0*a0)
         ymax=4*pi/(3.d0*a)
 
-	counter = 0
+  counter = 0
 
-	do i=1,ngrid
+  do i=1,ngrid
                 kx=xmax*(i-1)/(ngrid-1)
-		do j=1,ngrid
+    do j=1,ngrid
                          ky=ymax*(j-1)/(ngrid-1)
                          if (ky.lt.ymax/2.d0) then
                             counter=counter+1 
@@ -807,8 +887,8 @@ subroutine gridgenhex(ngrid,a,ncounter,kg)
                                 counter=counter+1 
                                 kg(counter, 2)=-kx
                                 kg(counter, 1)=ky
-			    end if
-	                    if (j.ne.1) then
+          end if
+                      if (j.ne.1) then
                                 counter=counter+1 
                                 kg(counter, 2)=kx
                                 kg(counter, 1)=-ky
@@ -826,47 +906,47 @@ subroutine gridgenhex(ngrid,a,ncounter,kg)
                                 counter=counter+1 
                                 kg(counter, 2)=-kx
                                 kg(counter, 1)=ky
-			    end if
-	                    if (j.ne.1) then
+          end if
+                      if (j.ne.1) then
                                 counter=counter+1 
                                 kg(counter, 2)=kx
                                 kg(counter, 1)=-ky
                             end if
                          end if
                 
-		
-		end do
+    
+    end do
         end do
 
-	
+  
 
 
 end subroutine gridgenhex
 
 function find_kpoint_index(kpoints, nkpts, point) result(index)
-	integer, intent(in) :: nkpts
-	double precision, dimension(nkpts, 3), intent(in) :: kpoints
-	double precision, dimension(3), intent(in) :: point
-	real, parameter :: tolerance = 1.0e-6 
-	integer :: index
+  integer, intent(in) :: nkpts
+  double precision, dimension(nkpts, 3), intent(in) :: kpoints
+  double precision, dimension(3), intent(in) :: point
+  real, parameter :: tolerance = 1.0e-6 
+  integer :: index
   
-	integer :: i
-	logical :: found
+  integer :: i
+  logical :: found
   
-	found = .false.
-	index = -1  ! Initialize index to -1 to indicate 'not found' by default
+  found = .false.
+  index = -1  ! Initialize index to -1 to indicate 'not found' by default
   
-	do i = 1, nkpts
-		if (all(abs(kpoints(i, :) - point) < tolerance)) then
-			index = i
-			found = .true.
-			exit  ! Exit the loop once the point is found
-		endif
-	enddo
+  do i = 1, nkpts
+    if (all(abs(kpoints(i, :) - point) < tolerance)) then
+      index = i
+      found = .true.
+      exit  ! Exit the loop once the point is found
+    endif
+  enddo
   
-	if (.not. found) then
-		print *, 'Point not found in the list.', point
-	endif
-  end function find_kpoint_index
+  if (.not. found) then
+    print *, 'Point not found in the list.', point
+  endif
+end function find_kpoint_index
   
   
