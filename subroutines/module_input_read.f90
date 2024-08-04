@@ -614,7 +614,7 @@ subroutine input_read
 		params = b
 
 	case ("PARAMS_MMN_FILE=")
-
+                print*, 'Found PARAMS_MMN_FILE, ', b
 		params_mmn = b		
 
 	case ("KPATH_FILE=")
@@ -839,7 +839,7 @@ subroutine mmn_input_read_dimensions(unidade,inputfile)
     integer :: unidade,stat
     character(len=70) :: inputfile
 
-    open(unit=unidade, file=inputfile, status='old', action='read', iostat=stat)
+    open(unit=unidade, file=inputfile, action='read', iostat=stat)
     if (stat /= 0) then
         write(*, *) "Error opening file: ", trim(inputfile)
         stop
@@ -872,7 +872,7 @@ subroutine mmn_input_read_elements(unidade, inputfile, nb,nk, nntot, mmn_overlap
     integer :: unidade, stat
     
     ! Open the file for reading
-    open(unit=unidade, file=inputfile, status='old', action='read', iostat=stat)
+    open(unit=unidade, file=inputfile, action='read', iostat=stat)
     if (stat /= 0) then
         write(*, *) "Error opening file: ", trim(inputfile)
         stop

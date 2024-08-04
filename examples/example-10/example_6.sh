@@ -13,7 +13,7 @@ DFT= "O"
 OUTPUT= "./out/"
 CALC_DATA= "./out/"
 PARAMS_FILE= "bi2se3_hr.dat"                                                             
-PARAMS_MMN="bi2se3.mmn"                                                    
+PARAMS_MMN_FILE= "bi2se3.mmn"                                                    
  
 NGX= 3
 NGY= 3
