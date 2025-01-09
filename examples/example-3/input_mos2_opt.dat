@@ -1,12 +1,4 @@
-#!/usr/bin/env bash
-
-nthreads=10
-wtbexec="../../bin/wtb.x"
-
-mkdir ./out
-
-cat > input_mos2_opt.dat << EOF
-NTHREADS= $nthreads
+NTHREADS= 10
 SYSDIM= "2D"
 DFT= "V"
 
@@ -31,12 +23,3 @@ CSHIFT= 0.08
 ENSPECI= 0.0
 ENSPECF= 4.0
 	
-EOF
-
-
-$wtbexec < input_mos2_opt.dat
-
-
-
-
-

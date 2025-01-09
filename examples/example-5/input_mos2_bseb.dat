@@ -1,0 +1,21 @@
+NTHREADS= 10
+SYSDIM= "2D"
+DFT= "V"
+
+OUTPUT= "./out/"
+CALC_DATA= "./out/"
+PARAMS_FILE= "tb_mos2.dat"                                                                                                                       
+KPATH_BSE= "tmd-kpoints-bse.dat"                                                       
+ 
+MESH_TYPE= "RK2D"
+RK= 120
+
+BSE_BND= T
+
+
+COULOMB_POT= V2DT2
+NBANDSC= 2
+NBANDSV= 2
+LC= 8.00
+
+	

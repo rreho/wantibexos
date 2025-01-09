@@ -266,8 +266,7 @@ function v2dt2(kpt1,kpt2,ngrid,rlat,lc,tolr)
 
 		v2dt2 = (vbz*cic)*((factor)/(modk*modk))*(1.0-dexp(-0.5*qxy*lc)*cos(0.5*lc*vkpt(3)))
 	end if
-	
-
+                
 
 end function
 

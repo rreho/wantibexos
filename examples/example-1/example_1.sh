@@ -3,8 +3,8 @@
 orbw="c1 c1-pz c1-sp2 c2 c-pz"
 orbw=($orbw)
 
-nthreads=10
-wtbexec="wantibexos_folder/bin/wtb.x"
+nthreads=4
+wtbexec="../../bin/wtb.x"
 
 #c1 - carbon 1 all orbitals contribution
 #c1-pz - carbon 1 pz orbitals contribution
@@ -78,13 +78,37 @@ NTHREADS= $nthreads
 SYSDIM= "2D"
 DFT= "V"
 
-OUTPUT= "./out/$orbwl/"
-CALC_DATA= "./out/$orbwl/"
+OUTPUT= "/out/"
+!OUTPUT= "./out/$orbwl/"
+CALC_DATA= "./out/"
 PARAMS_FILE= "tb_graphene.dat"                                                             
 KPATH_FILE= "tmd-kpoints.dat"                                                                                                                 
-ORB_W= "$orbwl" 
+KPATH_BSE= "tmd-kpoints-bse.dat"
+
+!ORB_W= "$orbwl" 
 
 BANDS= T
+
+BSE= T
+SPEC= T
+DTDIAG= T
+NGX=6
+NGY=6
+NGZ=1
+BSE_BND= T
+BSE_WF= T
+BERRY_EXC= F
+EXC_WF_I= 1
+EXC_WF_F= 1
+
+COULOMB_POT= V2DT2
+NBANDSC= 1
+NBANDSV= 1
+LC= 8.00
+
+CSHIFT= 0.08
+ENSPECI= 0.0
+ENSPECF= 4.0
 	
 EOF
 

@@ -1,0 +1,31 @@
+SYSDIM= "2D"
+DFT= "V"
+
+OUTPUT= "/out/"
+CALC_DATA= "./out/"
+PARAMS_FILE= "tb_graphene.dat"                                                             
+KPATH_FILE= "tmd-kpoints.dat"                                                                                                                 
+KPATH_BSE= "tmd-kpoints-bse.dat"
+
+BANDS= T
+
+BSE= T
+SPEC= T
+DTDIAG= T
+NGX=6
+NGY=6
+NGZ=1
+BSE_BND= T
+BSE_WF= T
+EXC_WF_I= 1
+EXC_WF_F= 2
+
+COULOMB_POT= V2DT2
+NBANDSC= 1
+NBANDSV= 1
+LC= 8.00
+
+CSHIFT= 0.08
+ENSPECI= 0.0
+ENSPECF= 4.0
+	

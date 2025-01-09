@@ -445,7 +445,7 @@ subroutine bsesolver(nthreads,outputfolder,calcparms,ngrid,nc,nv,numdos, &
   	    ,eigv(stt(j,4),stt(j,2)) &
             ,vector(stt(j,4),stt(j,3),:),vector(stt(j,4),stt(j,2),:),kpt(stt(j,4),:))
 
-
+  write(*,*),i,j, hbse(i,j)
 
 		end do
 

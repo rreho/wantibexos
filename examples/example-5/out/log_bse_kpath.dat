@@ -1,0 +1,19 @@
+ threads:          10
+ 
+ grid:          44          44           1
+ 
+ ktol-coulomb:  1.000000047497451E-003
+ 
+ kmesh shift:  0.000000000000000E+000  0.000000000000000E+000
+  0.000000000000000E+000
+ 
+ conduction bands, nc:           2   valence bands, nv:           2
+ 
+ number of kpoints in the path:             30
+ 
+ 
+ begin  day          22           20 hours          27 min           2 seg
+ 
+ quantum numbers for exciton basis set finished
+ progress:           1 /          30
+ progress:           2 /          30

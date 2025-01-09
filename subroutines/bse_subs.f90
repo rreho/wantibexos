@@ -118,6 +118,7 @@ function matrizelbse(coultype,tolr,w90basis,ediel,lc,ez,w,r0,ngrid,rlat,est1,ec1
 
 	end if
 		
+        write(*,*), est1(1),est2(1),kpt1,kpt2,ec1-ev1,vcoul1,vc,vv,vbc1,vbc2
 
 
 
